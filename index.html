@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlacementPro | Company Placement & Interview Practice Portal</title>
+  <meta name="description" content="PlacementPro - practice aptitude, technical MCQs and coding challenges modelled on company placement-test patterns." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ======================= AUTH SCREEN ======================= -->
+  <section id="screen-login" class="screen auth-screen">
+    <div class="auth-bg-orb orb-1"></div>
+    <div class="auth-bg-orb orb-2"></div>
+    <div class="auth-layout">
+      <aside class="auth-visual glass-card">
+        <span class="auth-visual-kicker">Your placement journey</span>
+        <h2>Small practice.<br /><strong>Big direction.</strong></h2>
+        <p id="auth-visual-tip">Build a steady routine and let every attempt show you what to improve next.</p>
+        <div class="auth-guide-box">
+          <span id="auth-tip-label">Today&#39;s practice</span>
+          <ul id="auth-tip-list">
+            <li>20 minutes aptitude speed drill</li>
+            <li>Review three mistakes and write the lesson</li>
+            <li>Finish with one coding problem</li>
+          </ul>
+        </div>
+        <div class="auth-image-grid">
+          <button type="button" class="auth-image-card selected" data-auth-focus="routine">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&amp;fit=crop&amp;w=640&amp;q=80" alt="Students collaborating on a project" />
+            <span>Build routine</span>
+          </button>
+          <button type="button" class="auth-image-card" data-auth-focus="confidence">
+            <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&amp;fit=crop&amp;w=640&amp;q=80" alt="Students discussing career goals" />
+            <span>Grow confidence</span>
+          </button>
+        </div>
+      </aside>
+      <div class="auth-card glass-card">
+      <div class="auth-brand">
+        <div class="brand-logo">PP</div>
+        <h1>Placement<span class="accent">Pro</span></h1>
+        <p class="auth-sub">Company Placement &amp; Interview Practice Portal</p>
+      </div>
+
+      <div class="auth-tabs" role="tablist">
+        <button id="tab-login" class="auth-tab active" data-tab="login">Login</button>
+        <button id="tab-register" class="auth-tab" data-tab="register">Register</button>
+      </div>
+
+      <form id="login-form" class="auth-form" autocomplete="off">
+        <label class="field">
+          <span>Username</span>
+          <input type="text" id="login-username" placeholder="Enter your username" maxlength="30" required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="login-password" placeholder="Enter your password" maxlength="50" required />
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Login &amp; Start Practising</button>
+        <button type="button" id="forgot-password-btn" class="auth-link-btn">Forgot password?</button>
+      </form>
+
+      <form id="reset-form" class="auth-form hidden" autocomplete="off">
+        <label class="field">
+          <span>Username</span>
+          <input type="text" id="reset-username" placeholder="Enter your username" maxlength="30" required />
+        </label>
+        <label class="field">
+          <span>New Password</span>
+          <input type="password" id="reset-password" placeholder="Min. 4 characters" maxlength="50" required />
+        </label>
+        <label class="field">
+          <span>Confirm New Password</span>
+          <input type="password" id="reset-confirm" placeholder="Re-enter password" maxlength="50" required />
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Reset Password</button>
+        <button type="button" id="back-to-login-btn" class="auth-link-btn">Back to login</button>
+      </form>
+
+      <form id="register-form" class="auth-form hidden" autocomplete="off">
+        <label class="field">
+          <span>Full Name</span>
+          <input type="text" id="register-name" placeholder="Full Name" maxlength="40" required />
+        </label>
+        <label class="field">
+          <span>Register Number</span>
+          <input type="text" id="register-number" placeholder="Enter your register number" maxlength="30" required />
+        </label>
+        <label class="field">
+          <span>Phone Number</span>
+          <input type="tel" id="register-phone" placeholder="10-digit phone number" maxlength="15" required />
+        </label>
+        <label class="field">
+          <span>Department</span>
+          <select id="register-department" required>
+            <option value="">Select department</option>
+            <option value="CSE">Computer Science and Engineering</option>
+            <option value="IT">Information Technology</option>
+            <option value="ECE">Electronics and Communication</option>
+            <option value="EEE">Electrical and Electronics</option>
+            <option value="MECH">Mechanical Engineering</option>
+            <option value="CIVIL">Civil Engineering</option>
+            <option value="AIDS">AI and Data Science</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </label>
+        <label id="other-department-field" class="field hidden">
+          <span>Type Your Department</span>
+          <input type="text" id="register-other-department" placeholder="Enter your department" maxlength="60" />
+        </label>
+        <label class="field">
+          <span>Year of Study</span>
+          <select id="register-year" required>
+            <option value="">Select year</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="mba">MBA</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Generated Username</span>
+          <input type="text" id="register-username" placeholder="Your username will appear here" maxlength="30" readonly required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input type="password" id="register-password" placeholder="Min. 4 characters" maxlength="50" required />
+        </label>
+        <label class="field">
+          <span>Confirm Password</span>
+          <input type="password" id="register-confirm" placeholder="Re-enter password" maxlength="50" required />
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+      </form>
+
+      <p id="auth-message" class="auth-message hidden"></p>
+      <p class="demo-note">Demo mode: accounts are stored locally in your browser only.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= APP SHELL ======================= -->
+  <div id="app-shell" class="hidden">
+
+    <!-- Header -->
+    <header id="app-header">
+      <div class="header-inner">
+        <a href="#" class="brand" data-nav="home">
+          <span class="brand-logo">PP</span>
+          <span class="brand-name">Placement<span class="accent">Pro</span></span>
+        </a>
+
+        <nav id="header-nav" class="header-nav">
+          <button class="nav-link" data-nav="home">Home</button>
+          <button class="nav-link" data-nav="categories">Tests</button>
+          <button class="nav-link" data-nav="companies">Companies</button>
+          <button class="nav-link" data-nav="coding">Coding</button>
+          <button class="nav-link" data-nav="dashboard">Dashboard</button>
+          <button id="admin-nav-link" class="nav-link hidden" data-nav="admin">Admin</button>
+        </nav>
+
+        <div class="header-actions">
+          <button id="theme-toggle" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+            <svg id="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <svg id="icon-sun" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
+          <div class="user-chip" title="Logged in user">
+            <span id="user-avatar" class="profile-avatar"><span id="user-avatar-initial">U</span><span id="profile-crown" class="profile-crown hidden" aria-label="Princess crown">&#9819;</span></span>
+            <span id="user-name">user</span>
+          </div>
+          <button id="logout-btn" class="btn btn-outline btn-sm">Logout</button>
+          <button id="mobile-menu-btn" class="icon-btn mobile-only" aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="app-main">
+
+      <!-- ===================== HOME ===================== -->
+      <section id="screen-home" class="screen">
+        <div class="hero">
+          <div class="hero-bg-orb orb-1"></div>
+          <div class="hero-bg-orb orb-2"></div>
+          <div class="career-visual career-visual-left" data-career="skills">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&amp;fit=crop&amp;w=520&amp;q=80" alt="Students learning together" />
+            <span>Build skills</span>
+          </div>
+          <div class="career-visual career-visual-right" data-career="interview">
+            <img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&amp;fit=crop&amp;w=520&amp;q=80" alt="Team interview discussion" />
+            <span>Own interviews</span>
+          </div>
+          <span class="hero-badge">Interview-ready in weeks, not months</span>
+          <h2 class="hero-title">Crack Your Next<br /><span class="gradient-text">Company Placement Test</span></h2>
+          <p class="hero-sub">Company Placement &amp; Interview Practice Portal. Timed mock tests, hundreds of curated questions and a real coding judge - everything modelled on previous-test patterns.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" data-action="start-test">Start Test</button>
+            <button class="btn btn-glass btn-lg" data-action="company-tests">Company Tests</button>
+            <button class="btn btn-glass btn-lg" data-action="practice-test">Practice Test</button>
+            <button class="btn btn-glass btn-lg" data-action="coding-challenge">Programming Challenge</button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-pill"><strong id="stat-questions">0</strong><span>Questions</span></div>
+            <div class="stat-pill"><strong id="stat-problems">0</strong><span>Coding Problems</span></div>
+            <div class="stat-pill"><strong id="stat-companies">0</strong><span>Company Patterns</span></div>
+          </div>
+          <div id="career-insight" class="career-insight"><strong>Your next move</strong><span>Practice one timed test today and turn preparation into momentum.</span></div>
+        </div>
+
+        <div class="container section">
+          <h3 class="section-title">Why PlacementPro</h3>
+          <div class="feature-grid">
+            <div class="glass-card feature-card">
+              <div class="feature-icon icon-blue">Q</div>
+              <h4>Exam-style MCQ Engine</h4>
+              <p>One question at a time, countdown timer, mark-for-review palette and auto-submit - just like real drives.</p>
+            </div>
+            <div class="glass-card feature-card">
+              <div class="feature-icon icon-green">C</div>
+              <h4>Real Code Execution</h4>
+              <p>Write Java, Python, C or C++ in the built-in editor and run it against actual test cases with pass/fail results.</p>
+            </div>
+            <div class="glass-card feature-card">
+              <div class="feature-icon icon-orange">R</div>
+              <h4>Detailed Review</h4>
+              <p>Every submission shows correct answers, your answers and clear explanations so mistakes become lessons.</p>
+            </div>
+            <div class="glass-card feature-card">
+              <div class="feature-icon icon-purple">D</div>
+              <h4>Progress Dashboard</h4>
+              <p>Track completed tests, average and best scores plus category-wise strengths across sessions.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="container section">
+          <h3 class="section-title">Test Categories</h3>
+          <div class="category-preview-grid">
+            <div class="glass-card cat-preview"><span class="cat-dot dot-blue"></span><h4>Aptitude</h4><p>Quantitative, numerical ability, logical reasoning and verbal ability sets.</p></div>
+            <div class="glass-card cat-preview"><span class="cat-dot dot-green"></span><h4>Technical</h4><p>Java, Python, C/C++, OOP, DBMS, SQL, OS, networks, DSA and SE.</p></div>
+            <div class="glass-card cat-preview"><span class="cat-dot dot-orange"></span><h4>Programming</h4><p>Classic placement problems graded by real test cases in four languages.</p></div>
+            <div class="glass-card cat-preview"><span class="cat-dot dot-purple"></span><h4>Company Mocks</h4><p>Section mixes modelled on reported TCS, Infosys, Amazon and more.</p></div>
+          </div>
+          <p class="disclaimer-line">Practice content is based on publicly shared previous-test patterns and interview experiences. Not affiliated with any company.</p>
+        </div>
+      </section>
+
+      <!-- ===================== CATEGORY SELECT ===================== -->
+      <section id="screen-categories" class="screen hidden">
+        <div class="container section">
+          <div class="page-head">
+            <h2>Choose Your Test</h2>
+            <p>Pick an individual category or attempt a full mixed round. Questions are randomly picked and options shuffled every attempt.</p>
+          </div>
+          <div id="category-grid" class="category-grid"></div>
+        </div>
+      </section>
+
+      <!-- ===================== COMPANIES ===================== -->
+      <section id="screen-companies" class="screen hidden">
+        <div class="container section">
+          <div class="page-head">
+            <h2>Company Mock Tests</h2>
+            <p>Select a company to attempt a full mock modelled on its commonly reported online-test pattern.</p>
+          </div>
+          <div class="disclaimer-banner">
+            <strong>Previous-Test Pattern / Interview-Experience Based Practice Questions.</strong>
+            These mocks are inspired by publicly available past patterns and candidate experiences.
+            They are not leaked papers and are not affiliated with or endorsed by any company.
+          </div>
+          <div id="company-grid" class="company-grid"></div>
+        </div>
+      </section>
+
+      <!-- ===================== TEST (MCQ) ===================== -->
+      <section id="screen-test" class="screen hidden">
+        <div class="test-wrap">
+          <div class="test-topbar glass-card">
+            <div class="test-topbar-left">
+              <h3 id="test-title">Test</h3>
+              <span id="test-progress-label" class="test-meta">Question 1 of 10</span>
+            </div>
+            <div class="test-topbar-right">
+              <div id="timer-chip" class="timer-chip">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/></svg>
+                <span id="timer-text">00:00</span>
+              </div>
+              <button id="palette-toggle" class="btn btn-outline btn-sm mobile-only">Palette</button>
+            </div>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+          </div>
+
+          <div class="test-body">
+            <div class="question-area glass-card">
+              <div class="question-head">
+                <span id="question-counter" class="q-counter">Q1</span>
+                <span id="topic-chip" class="topic-chip">Topic</span>
+                <span id="marked-flag" class="marked-flag hidden">Marked for review</span>
+              </div>
+              <p id="question-text" class="question-text">Question text loads here.</p>
+              <div id="options-wrap" class="options-wrap"></div>
+              <div class="test-footer">
+                <button id="prev-btn" class="btn btn-outline">Previous</button>
+                <div class="footer-mid">
+                  <button id="mark-btn" class="btn btn-mark">Mark for Review</button>
+                  <button id="clear-btn" class="btn btn-ghost btn-sm">Clear Response</button>
+                </div>
+                <button id="next-btn" class="btn btn-primary">Next</button>
+              </div>
+              <button id="to-coding-btn" class="btn btn-success btn-block hidden">Proceed to Coding Section</button>
+            </div>
+
+            <aside id="palette-sidebar" class="palette glass-card">
+              <h4>Question Palette</h4>
+              <div id="palette-grid" class="palette-grid"></div>
+              <ul class="palette-legend">
+                <li><span class="legend-dot answered"></span>Answered</li>
+                <li><span class="legend-dot marked"></span>Marked</li>
+                <li><span class="legend-dot current"></span>Current</li>
+                <li><span class="legend-dot untouched"></span>Not visited</li>
+              </ul>
+              <button id="submit-side-btn" class="btn btn-danger btn-block">Submit Test</button>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CODING ===================== -->
+      <section id="screen-code" class="screen hidden">
+        <div class="code-wrap">
+          <div class="problem-pane glass-card">
+            <div class="problem-head">
+              <h3 id="problem-title">Problem Title</h3>
+              <span id="problem-difficulty" class="diff-chip easy">Easy</span>
+            </div>
+            <div id="problem-topics" class="topic-row"></div>
+            <p id="problem-statement" class="problem-statement"></p>
+            <div class="io-block">
+              <strong>Input Format</strong>
+              <p id="problem-input-format"></p>
+            </div>
+            <div class="io-block">
+              <strong>Output Format</strong>
+              <p id="problem-output-format"></p>
+            </div>
+            <div class="io-block">
+              <strong>Examples</strong>
+              <div id="problem-examples" class="example-list"></div>
+            </div>
+            <div class="hints-box">
+              <button id="hints-toggle" class="hints-toggle">Show Hints</button>
+              <ul id="hints-list" class="hidden"></ul>
+            </div>
+            <button id="back-to-questions-btn" class="btn btn-outline btn-block hidden">Back to MCQ Section</button>
+          </div>
+
+          <div class="editor-pane">
+            <div class="editor-toolbar glass-card">
+              <select id="language-select" class="lang-select" aria-label="Language">
+                <option value="java">Java</option>
+                <option value="python">Python</option>
+                <option value="c">C</option>
+                <option value="cpp">C++</option>
+              </select>
+              <button id="reset-code-btn" class="btn btn-ghost btn-sm">Reset Code</button>
+              <span id="judge-status" class="judge-status"></span>
+              <div class="toolbar-right">
+                <button id="run-code-btn" class="btn btn-primary btn-sm">Run Code</button>
+                <button id="submit-code-btn" class="btn btn-success btn-sm">Submit Code</button>
+              </div>
+            </div>
+            <textarea id="code-editor" class="code-editor glass-card" spellcheck="false"
+              placeholder="// Write your solution here..."></textarea>
+            <div class="output-panel glass-card">
+              <h4>Output</h4>
+              <pre id="output-console" class="output-console">Run your code to see output here.</pre>
+            </div>
+            <div id="testcase-panel" class="output-panel glass-card hidden">
+              <h4>Test Cases <span id="testcase-summary" class="tc-summary"></span></h4>
+              <div id="testcase-results" class="testcase-results"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== RESULT ===================== -->
+      <section id="screen-result" class="screen hidden">
+        <div class="container section">
+          <div class="result-hero glass-card">
+            <div class="ring-holder">
+              <svg viewBox="0 0 120 120" width="150" height="150">
+                <circle cx="60" cy="60" r="52" class="ring-track"/>
+                <circle id="result-ring" cx="60" cy="60" r="52" class="ring-value"/>
+              </svg>
+              <div class="ring-center">
+                <strong id="result-percent">0%</strong>
+                <span>Score</span>
+              </div>
+            </div>
+            <div class="result-headline">
+              <h2 id="result-title">Test Completed!</h2>
+              <p id="performance-message" class="perf-msg">Well done.</p>
+              <div id="prog-breakdown" class="prog-breakdown hidden"></div>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-card glass-card"><span>Total Questions</span><strong id="stat-total">0</strong></div>
+            <div class="stat-card glass-card"><span>Attempted</span><strong id="stat-attempted">0</strong></div>
+            <div class="stat-card glass-card correct"><span>Correct</span><strong id="stat-correct">0</strong></div>
+            <div class="stat-card glass-card wrong"><span>Wrong</span><strong id="stat-wrong">0</strong></div>
+            <div class="stat-card glass-card"><span>Unanswered</span><strong id="stat-unanswered">0</strong></div>
+            <div class="stat-card glass-card"><span>Marks Scored</span><strong id="stat-score">0</strong></div>
+            <div class="stat-card glass-card"><span>Time Taken</span><strong id="stat-time">00:00</strong></div>
+          </div>
+
+          <div id="category-bars" class="glass-card category-bars hidden">
+            <h4>Section-wise Performance</h4>
+            <div id="category-bars-body"></div>
+          </div>
+
+          <div class="review-head">
+            <h3>Question Review</h3>
+            <div class="review-filters">
+              <button class="review-filter active" data-filter="all">All</button>
+              <button class="review-filter" data-filter="correct">Correct</button>
+              <button class="review-filter" data-filter="wrong">Wrong</button>
+              <button class="review-filter" data-filter="skipped">Skipped</button>
+            </div>
+          </div>
+          <div id="review-list" class="review-list"></div>
+
+          <div class="result-actions">
+            <button id="retake-btn" class="btn btn-primary">Retake Test</button>
+            <button id="go-dashboard-btn" class="btn btn-glass">Go to Dashboard</button>
+            <button id="go-home-btn" class="btn btn-glass">Back Home</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <section id="screen-dashboard" class="screen hidden">
+        <div class="container section">
+          <div class="page-head row-between">
+            <div>
+              <h2 id="dash-welcome">Welcome back</h2>
+              <p>Your performance snapshot across all practice attempts.</p>
+            </div>
+            <button id="clear-history-btn" class="btn btn-danger btn-sm">Reset My Data</button>
+          </div>
+
+          <div id="dash-empty" class="glass-card empty-state hidden">
+            <h4>No attempts yet</h4>
+            <p>Start with a Practice Test or pick a company mock - your stats will appear here instantly.</p>
+            <button class="btn btn-primary" data-nav="categories">Take Your First Test</button>
+          </div>
+
+          <div id="dash-content">
+            <div class="kpi-grid">
+              <div class="glass-card kpi-card"><span>Tests Completed</span><strong id="kpi-completed">0</strong></div>
+              <div class="glass-card kpi-card"><span>Average Score</span><strong id="kpi-average">-</strong></div>
+              <div class="glass-card kpi-card"><span>Best Score</span><strong id="kpi-best">-</strong></div>
+              <div class="glass-card kpi-card"><span>Time Practised</span><strong id="kpi-time">0m</strong></div>
+            </div>
+
+            <div class="glass-card perf-card">
+              <h4>Category Performance</h4>
+              <div class="perf-row"><span>Aptitude</span><div class="perf-track"><div id="bar-aptitude" class="perf-fill bar-blue"></div></div><em id="label-aptitude">-</em></div>
+              <div class="perf-row"><span>Technical</span><div class="perf-track"><div id="bar-technical" class="perf-fill bar-green"></div></div><em id="label-technical">-</em></div>
+              <div class="perf-row"><span>Programming</span><div class="perf-track"><div id="bar-programming" class="perf-fill bar-orange"></div></div><em id="label-programming">-</em></div>
+            </div>
+
+            <div class="glass-card history-card">
+              <h4>Recent Test History</h4>
+              <div class="table-scroll">
+                <table class="history-table">
+                  <thead>
+                    <tr><th>Date</th><th>Test</th><th>Type</th><th>Score</th><th>%</th><th>Result</th></tr>
+                  </thead>
+                  <tbody id="history-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <section class="glass-card ai-coach-card">
+              <div class="ai-coach-head">
+                <div>
+                  <span class="eyebrow">AI study coach</span>
+                  <h4>Turn your results into a plan</h4>
+                </div>
+                <span class="ai-spark">AI</span>
+              </div>
+              <p class="ai-coach-copy">Ask for a focused revision plan, mock-test strategy, or an explanation of a topic you find difficult.</p>
+              <div class="ai-coach-controls">
+                <input id="ai-api-key" type="password" placeholder="Paste Gemini API key (stored only in this browser)" autocomplete="off" />
+                <button id="save-ai-key-btn" class="btn btn-outline btn-sm">Save Key</button>
+              </div>
+              <div class="ai-coach-controls">
+                <input id="ai-prompt" type="text" placeholder="e.g. Make me a 7-day plan to improve logical reasoning" maxlength="240" />
+                <button id="ask-ai-btn" class="btn btn-primary btn-sm">Ask Coach</button>
+              </div>
+              <div id="ai-response" class="ai-response">Your personalised advice will appear here.</div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== ADMIN ===================== -->
+      <section id="screen-admin" class="screen hidden">
+        <div class="container section">
+          <div class="page-head row-between">
+            <div>
+              <h2>Admin Overview</h2>
+              <p>Local demo analytics for every account and attempt in this browser.</p>
+            </div>
+            <button id="admin-refresh-btn" class="btn btn-outline btn-sm">Refresh Data</button>
+          </div>
+          <div class="kpi-grid admin-kpis">
+            <div class="glass-card kpi-card"><span>Registered Users</span><strong id="admin-user-count">0</strong></div>
+            <div class="glass-card kpi-card"><span>Total Attempts</span><strong id="admin-attempt-count">0</strong></div>
+            <div class="glass-card kpi-card"><span>Average Score</span><strong id="admin-average-score">-</strong></div>
+            <div class="glass-card kpi-card"><span>Active Today</span><strong id="admin-active-today">0</strong></div>
+          </div>
+          <div class="glass-card admin-table-card">
+            <h4>All User Activity</h4>
+            <div class="table-scroll">
+              <table class="history-table admin-table">
+                <thead><tr><th>Student</th><th>Register No.</th><th>Phone</th><th>Department</th><th>Year</th><th>Attempts</th><th>Average</th><th>Last Activity</th></tr></thead>
+                <tbody id="admin-users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <p class="admin-note">Admin demo login: <strong>admin</strong> / <strong>intel@123</strong>. This data is browser-local and is not suitable for production access control.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer id="app-footer">
+      <p><strong>PlacementPro</strong> - demo practice portal. All questions are original practice items modelled on publicly shared previous-test patterns and interview experiences. Not affiliated with any listed company.</p>
+    </footer>
+  </div>
+
+  <!-- ===================== MODALS ===================== -->
+  <div id="modal-company" class="modal-overlay hidden">
+    <div class="modal glass-card">
+      <div id="company-modal-body"></div>
+      <div class="modal-actions">
+        <button id="company-modal-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="company-modal-start" class="btn btn-primary">Begin Company Test</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-confirm" class="modal-overlay hidden">
+    <div class="modal glass-card">
+      <h3>Submit this test?</h3>
+      <p id="confirm-counts" class="confirm-text"></p>
+      <div class="confirm-hint-row">
+        <span class="legend-dot answered"></span>Answered
+        <span class="legend-dot marked"></span>Marked
+        <span class="legend-dot untouched"></span>Unanswered
+      </div>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="btn btn-ghost">Keep Working</button>
+        <button id="confirm-submit" class="btn btn-danger">Submit Now</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-admin-student" class="modal-overlay hidden">
+    <div class="modal glass-card admin-student-modal">
+      <div id="admin-student-profile-body"></div>
+      <div class="modal-actions">
+        <button id="admin-student-close" class="btn btn-primary">Close Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-wrap" class="toast-wrap"></div>
+
+  <!-- Data banks (plain scripts so the site also works from file://) -->
+  <script src="data/aptitude.js"></script>
+  <script src="data/technical.js"></script>
+  <script src="data/programming.js"></script>
+  <script src="data/companies.js?v=20260908-6"></script>
+  <script src="script.js?v=20260908-6"></script>
+</body>
+</html>
