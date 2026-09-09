@@ -219,6 +219,17 @@ function users() {
   return legacy && typeof legacy === "object" ? legacy : {};
 }
 
+function isFileMode() {
+  return window.location.protocol === "file:";
+}
+
+function saveLocalAccount(account) {
+  const stored = users();
+  if (stored[account.username]) throw new Error("That username already exists. Try logging in.");
+  stored[account.username] = account;
+  lsSet(LS_USERS, stored);
+}
+
 async function apiFetch(path, options = {}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -405,6 +416,17 @@ async function registerUser(e) {
     showToast("Account created. Welcome aboard!", "success");
     loginUserByName(name);
   } catch (error) {
+    if (isFileMode()) {
+      try {
+        saveLocalAccount({ username: name, fullName, registerNumber, phone, department, year, role: "student", password: pass });
+        showToast("Account created in this browser. Welcome aboard!", "success");
+        loginUserByName(name);
+        return;
+      } catch (localError) {
+        showAuthMessage(localError.message || "Registration failed.");
+        return;
+      }
+    }
     showAuthMessage(error.message || "Registration failed.");
   }
 }
@@ -426,6 +448,15 @@ async function loginUser(e) {
     });
     loginUserByName(data.user.username);
   } catch (error) {
+    if (isFileMode()) {
+      const account = users()[name];
+      if (account && account.password === pass) {
+        loginUserByName(name);
+        return;
+      }
+      showAuthMessage(account ? "Incorrect password. Please try again." : "No such local account. Register first.");
+      return;
+    }
     showAuthMessage(error.message || "Login failed.");
   }
 }
