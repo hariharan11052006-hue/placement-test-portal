@@ -215,7 +215,56 @@ function setAuthFocus(focus) {
    AUTH
    ============================================================ */
 function users() {
-  return lsGet(LS_USERS, {});
+  const legacy = lsGet(LS_USERS, {});
+  return legacy && typeof legacy === "object" ? legacy : {};
+}
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || "Request failed");
+  }
+  return data;
+}
+
+async function loadUserHistory(username) {
+  if (!username) return [];
+  try {
+    const data = await apiFetch("/api/history/" + encodeURIComponent(username));
+    const list = Array.isArray(data.history) ? data.history : [];
+    lsSet(histKey(username), list);
+    return list;
+  } catch (error) {
+    const fallback = lsGet(histKey(username), []);
+    return Array.isArray(fallback) ? fallback : [];
+  }
+}
+
+async function saveUserHistory(username, entry) {
+  if (!username || !entry) return;
+  try {
+    await apiFetch("/api/history/" + encodeURIComponent(username), {
+      method: "POST",
+      body: JSON.stringify({ entry })
+    });
+  } catch (error) {
+    const list = lsGet(histKey(username), []);
+    list.push(entry);
+    lsSet(histKey(username), list.slice(-100));
+  }
+}
+
+async function clearUserHistory(username) {
+  if (!username) return;
+  try {
+    await apiFetch("/api/history/" + encodeURIComponent(username), { method: "DELETE" });
+  } catch (error) {
+    lsSet(histKey(username), []);
+  }
 }
 
 function showAuthMessage(text, ok = false) {
@@ -243,7 +292,7 @@ function showResetForm() {
   $("tab-register").classList.remove("active");
 }
 
-function resetPassword(e) {
+async function resetPassword(e) {
   e.preventDefault();
   const name = $("reset-username").value.trim();
   const pass = $("reset-password").value;
@@ -264,16 +313,18 @@ function resetPassword(e) {
     showAuthMessage("Passwords do not match.");
     return;
   }
-  const db = users();
-  if (!db[name]) {
-    showAuthMessage("No account found for that username.");
-    return;
+
+  try {
+    await apiFetch("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ username: name, password: pass })
+    });
+    $("reset-form").reset();
+    switchAuthTab("login");
+    showAuthMessage("Password reset successfully. You can log in now.", true);
+  } catch (error) {
+    showAuthMessage(error.message || "Password reset failed.");
   }
-  db[name].pass = pass;
-  lsSet(LS_USERS, db);
-  $("reset-form").reset();
-  switchAuthTab("login");
-  showAuthMessage("Password reset successfully. You can log in now.", true);
 }
 
 function validUsername(name) {
@@ -297,7 +348,7 @@ function toggleOtherDepartment() {
   $("register-other-department").required = isOther;
 }
 
-function registerUser(e) {
+async function registerUser(e) {
   e.preventDefault();
   const fullName = $("register-name").value.trim();
   const registerNumber = $("register-number").value.trim();
@@ -337,35 +388,46 @@ function registerUser(e) {
     showAuthMessage("Passwords do not match.");
     return;
   }
-  const db = users();
-  if (db[name]) {
-    showAuthMessage("That username already exists. Try logging in.");
-    return;
+
+  try {
+    await apiFetch("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        username: name,
+        fullName,
+        registerNumber,
+        phone,
+        department,
+        year,
+        password: pass
+      })
+    });
+    showToast("Account created. Welcome aboard!", "success");
+    loginUserByName(name);
+  } catch (error) {
+    showAuthMessage(error.message || "Registration failed.");
   }
-  db[name] = { pass: pass, fullName: fullName, registerNumber: registerNumber, phone: phone, department: department, year: year, created: new Date().toISOString() };
-  lsSet(LS_USERS, db);
-  showToast("Account created. Welcome aboard!", "success");
-  loginUserByName(name);
 }
 
-function loginUser(e) {
+async function loginUser(e) {
   e.preventDefault();
   const name = $("login-username").value.trim();
   const pass = $("login-password").value;
+
   if (name === ADMIN_USER && pass === ADMIN_PASS) {
     loginUserByName(ADMIN_USER);
     return;
   }
-  const db = users();
-  if (!db[name]) {
-    showAuthMessage("No such user found. Register first - it takes two seconds.");
-    return;
+
+  try {
+    const data = await apiFetch("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username: name, password: pass })
+    });
+    loginUserByName(data.user.username);
+  } catch (error) {
+    showAuthMessage(error.message || "Login failed.");
   }
-  if (db[name].pass !== pass) {
-    showAuthMessage("Incorrect password. Please try again.");
-    return;
-  }
-  loginUserByName(name);
 }
 
 function loginUserByName(name) {
@@ -393,15 +455,9 @@ function enterApp() {
     renderAdmin();
     showScreen("screen-admin");
   } else {
+    loadUserHistory(currentUser).then(() => updateProfileBadge());
     showScreen("screen-home");
   }
-}
-
-function updateProfileBadge() {
-  const crowned = currentUser && getHistory().length > 0;
-  $("user-avatar").classList.toggle("crowned", !!crowned);
-  $("profile-crown").classList.toggle("hidden", !crowned);
-  $("user-avatar").title = crowned ? "Princess crown earned after completing a test" : "Complete a test to earn your crown";
 }
 
 function tryResumeSession() {
@@ -426,67 +482,79 @@ function tryResumeSession() {
 function getHistory() {
   return currentUser ? lsGet(histKey(currentUser), []) : [];
 }
+
+async function updateProfileBadge() {
+  if (!currentUser) return;
+  const hist = await loadUserHistory(currentUser);
+  const crowned = hist.length > 0;
+  $("user-avatar").classList.toggle("crowned", !!crowned);
+  $("profile-crown").classList.toggle("hidden", !crowned);
+  $("user-avatar").title = crowned ? "Princess crown earned after completing a test" : "Complete a test to earn your crown";
+}
+
 function saveHistoryEntry(entry) {
+  if (!currentUser) return;
   const list = getHistory();
   list.push(entry);
   lsSet(histKey(currentUser), list.slice(-100));
+  saveUserHistory(currentUser, entry);
   updateProfileBadge();
 }
 
-function allLocalUsers() {
-  return Object.keys(users()).filter((name) => name !== ADMIN_USER);
+async function renderAdmin() {
+  if (currentUser !== ADMIN_USER) return;
+  try {
+    const data = await apiFetch("/api/admin");
+    const rows = data.users || [];
+    const attempts = rows.reduce((total, row) => total + (row.history || []).length, 0);
+    const scores = rows.reduce((all, row) => all.concat((row.history || []).map((item) => item.percentage || 0)), []);
+    const today = new Date().toISOString().slice(0, 10);
+    $("admin-user-count").textContent = rows.length;
+    $("admin-attempt-count").textContent = attempts;
+    $("admin-average-score").textContent = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) + "%" : "-";
+    $("admin-active-today").textContent = rows.filter((row) => row.lastActivity && row.lastActivity.slice(0, 10) === today).length;
+    $("admin-users-tbody").innerHTML = rows.length ? rows.map((row) =>
+      "<tr><td><button class=\"admin-student-link\" data-admin-student=\"" + escapeHtml(row.username) + "\"><strong>" + escapeHtml(row.fullName || row.username) + "</strong><small class=\"admin-username\">" + escapeHtml(row.username) + "</small></button></td>" +
+      "<td>" + escapeHtml(row.registerNumber || "-") + "</td>" +
+      "<td>" + escapeHtml(row.phone || "-") + "</td>" +
+      "<td>" + escapeHtml(row.department || "-") + "</td>" +
+      "<td>" + escapeHtml(row.year === "mba" ? "MBA" : (row.year || "-")) + "</td>" +
+      "<td>" + (row.history || []).length + "</td>" +
+      "<td>" + ((row.history || []).length ? Math.round((row.history || []).reduce((a, b) => a + (b.percentage || 0), 0) / (row.history || []).length) + "%" : "-") + "</td>" +
+      "<td>" + (row.lastActivity ? fmtDate(row.lastActivity) : "No attempts") + "</td></tr>").join("") :
+      '<tr><td colspan="8">No users registered yet.</td></tr>';
+    document.querySelectorAll("[data-admin-student]").forEach((button) => {
+      button.addEventListener("click", () => openAdminStudentProfile(button.dataset.adminStudent));
+    });
+  } catch (error) {
+    $("admin-users-tbody").innerHTML = '<tr><td colspan="8">Unable to load admin data.</td></tr>';
+  }
 }
 
-function renderAdmin() {
+async function openAdminStudentProfile(name) {
   if (currentUser !== ADMIN_USER) return;
-  const db = users();
-  const rows = allLocalUsers().map((name) => {
-    const history = lsGet(histKey(name), []);
-    const scores = history.map((item) => item.percentage || 0);
-    const last = history.length ? history[history.length - 1] : null;
-    return { name, profile: db[name], history, average: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0, last };
-  });
-  const attempts = rows.reduce((total, row) => total + row.history.length, 0);
-  const scores = rows.reduce((all, row) => all.concat(row.history.map((item) => item.percentage || 0)), []);
-  const today = new Date().toISOString().slice(0, 10);
-  $("admin-user-count").textContent = rows.length;
-  $("admin-attempt-count").textContent = attempts;
-  $("admin-average-score").textContent = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) + "%" : "-";
-  $("admin-active-today").textContent = rows.filter((row) => row.last && row.last.date.slice(0, 10) === today).length;
-  $("admin-users-tbody").innerHTML = rows.length ? rows.map((row) =>
-    "<tr><td><button class=\"admin-student-link\" data-admin-student=\"" + escapeHtml(row.name) + "\"><strong>" + escapeHtml(row.profile.fullName || row.name) + "</strong><small class=\"admin-username\">" + escapeHtml(row.name) + "</small></button></td>" +
-    "<td>" + escapeHtml(row.profile.registerNumber || "-") + "</td>" +
-    "<td>" + escapeHtml(row.profile.phone || "-") + "</td>" +
-    "<td>" + escapeHtml(row.profile.department || "-") + "</td>" +
-    "<td>" + escapeHtml(row.profile.year === "mba" ? "MBA" : (row.profile.year || "-")) + "</td>" +
-    "<td>" + row.history.length + "</td>" +
-    "<td>" + (row.history.length ? row.average + "%" : "-") + "</td>" +
-    "<td>" + (row.last ? fmtDate(row.last.date) : "No attempts") + "</td></tr>").join("") :
-    '<tr><td colspan="8">No users registered yet.</td></tr>';
-  document.querySelectorAll("[data-admin-student]").forEach((button) => {
-    button.addEventListener("click", () => openAdminStudentProfile(button.dataset.adminStudent));
-  });
-}
-
-function openAdminStudentProfile(name) {
-  if (currentUser !== ADMIN_USER) return;
-  const profile = users()[name];
-  const history = lsGet(histKey(name), []);
-  if (!profile) return;
-  const average = history.length ? Math.round(history.reduce((sum, item) => sum + (item.percentage || 0), 0) / history.length) : 0;
-  const companyRows = history.filter((item) => item.type === "Company Mock").map((item) => {
-    const company = COMPANIES.find((co) => co.id === item.companyId);
-    return '<tr><td>' + escapeHtml(company ? company.name : (item.title || "Company Mock")) + '</td><td>' + (item.percentage || 0) + '%</td><td>' + fmtDate(item.date) + '</td></tr>';
-  }).join("");
-  const attempts = history.map((item) =>
-    '<div class="admin-attempt-row"><strong>' + escapeHtml(item.title || "Practice Test") + '</strong><span>' + (item.percentage || 0) + '% <small>' + fmtDate(item.date) + '</small></span></div>'
-  ).join("");
-  $("admin-student-profile-body").innerHTML =
-    '<div class="admin-profile-head"><div class="admin-profile-avatar">' + escapeHtml((profile.fullName || name).charAt(0)) + '</div><div><h3>' + escapeHtml(profile.fullName || name) + '</h3><p>' + escapeHtml(name) + ' &middot; ' + escapeHtml(profile.department || "-") + ' &middot; Year ' + escapeHtml(profile.year === "mba" ? "MBA" : (profile.year || "-")) + '</p></div></div>' +
-    '<div class="admin-profile-kpis"><div><span>Tests Finished</span><strong>' + history.length + '</strong></div><div><span>Average</span><strong>' + (history.length ? average + '%' : '-') + '</strong></div><div><span>Best</span><strong>' + (history.length ? Math.max.apply(null, history.map((item) => item.percentage || 0)) + '%' : '-') + '</strong></div></div>' +
-    '<h4>Company Tests</h4>' + (companyRows ? '<div class="table-scroll"><table class="history-table admin-profile-table"><thead><tr><th>Company</th><th>Score</th><th>Completed</th></tr></thead><tbody>' + companyRows + '</tbody></table></div>' : '<p class="admin-profile-empty">No company tests completed yet.</p>') +
-    '<h4 class="admin-attempt-title">All Completed Tests</h4>' + (attempts || '<p class="admin-profile-empty">No tests completed yet.</p>');
-  $("modal-admin-student").classList.remove("hidden");
+  try {
+    const usersList = (await apiFetch("/api/admin")).users || [];
+    const profile = usersList.find((user) => user.username === name);
+    if (!profile) return;
+    const history = profile.history || [];
+    const average = history.length ? Math.round(history.reduce((sum, item) => sum + (item.percentage || 0), 0) / history.length) : 0;
+    const companyRows = history.filter((item) => item.type === "Company Mock").map((item) => {
+      const company = COMPANIES.find((co) => co.id === item.companyId);
+      return '<tr><td>' + escapeHtml(company ? company.name : (item.title || "Company Mock")) + '</td><td>' + (item.percentage || 0) + '%</td><td>' + fmtDate(item.date) + '</td></tr>';
+    }).join("");
+    const attempts = history.map((item) =>
+      '<div class="admin-attempt-row"><strong>' + escapeHtml(item.title || "Practice Test") + '</strong><span>' + (item.percentage || 0) + '% <small>' + fmtDate(item.date) + '</small></span></div>'
+    ).join("");
+    $("admin-student-profile-body").innerHTML =
+      '<div class="admin-profile-head"><div class="admin-profile-avatar">' + escapeHtml((profile.fullName || name).charAt(0)) + '</div><div><h3>' + escapeHtml(profile.fullName || name) + '</h3><p>' + escapeHtml(name) + ' &middot; ' + escapeHtml(profile.department || "-") + ' &middot; Year ' + escapeHtml(profile.year === "mba" ? "MBA" : (profile.year || "-")) + '</p></div></div>' +
+      '<div class="admin-profile-kpis"><div><span>Tests Finished</span><strong>' + history.length + '</strong></div><div><span>Average</span><strong>' + (history.length ? average + '%' : '-') + '</strong></div><div><span>Best</span><strong>' + (history.length ? Math.max.apply(null, history.map((item) => item.percentage || 0)) + '%' : '-') + '</strong></div></div>' +
+      '<h4>Company Tests</h4>' + (companyRows ? '<div class="table-scroll"><table class="history-table admin-profile-table"><thead><tr><th>Company</th><th>Score</th><th>Completed</th></tr></thead><tbody>' + companyRows + '</tbody></table></div>' : '<p class="admin-profile-empty">No company tests completed yet.</p>') +
+      '<h4 class="admin-attempt-title">All Completed Tests</h4>' + (attempts || '<p class="admin-profile-empty">No tests completed yet.</p>');
+    $("modal-admin-student").classList.remove("hidden");
+  } catch (error) {
+    showToast("Unable to load student profile.", "error");
+  }
 }
 
 function closeAdminStudentProfile() {
@@ -821,6 +889,13 @@ function startCategoryTest(cfg) {
 }
 
 function startSectionedTest(sections, title, minutes, extra) {
+  const cfg = {
+    key: (extra && extra.categoryId) || "mixed",
+    title: title,
+    minutes: minutes,
+    sections: sections
+  };
+  lastConfigRef = { type: "category", cfg: cfg };
   const qs = buildSectionedQuestions(sections);
   baseSession("category", title, qs, minutes, extra);
   enterMcqPhase();
@@ -1319,7 +1394,7 @@ function renderResult(res, retakeCfg) {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       ring.style.strokeDashoffset = String(327 * (1 - res.percentage / 100));
-      ring.className = "ring-value " + (res.percentage >= 70 ? "good" : res.percentage >= 45 ? "mid" : "bad");
+      ring.setAttribute("class", "ring-value " + (res.percentage >= 70 ? "good" : res.percentage >= 45 ? "mid" : "bad"));
     });
   });
 
@@ -1374,8 +1449,12 @@ function renderResult(res, retakeCfg) {
   retakeBtn.onclick = () => {
     if (!retakeCfg) { showToast("Nothing to retake.", "info"); return; }
     if (retakeCfg.type === "category" && retakeCfg.cfg && retakeCfg.cfg.key) {
-      if (retakeCfg.cfg.key === "mixed") startSectionedTest(MIXED_TEST.sections, MIXED_TEST.title, MIXED_TEST.minutes, { kind: "category", categoryId: "mixed" });
-      else startCategoryTest(retakeCfg.cfg);
+      if (retakeCfg.cfg.key === "mixed") {
+        const cfg = retakeCfg.cfg;
+        startSectionedTest(cfg.sections || MIXED_TEST.sections, cfg.title || MIXED_TEST.title, cfg.minutes || MIXED_TEST.minutes, { kind: "category", categoryId: "mixed" });
+      } else {
+        startCategoryTest(retakeCfg.cfg);
+      }
     } else if (retakeCfg.type === "company") {
       const co = COMPANIES.find((c) => c.id === retakeCfg.companyId);
       if (co) startCompanyTest(co);
@@ -1431,8 +1510,8 @@ function renderReview(filter) {
 /* ============================================================
    DASHBOARD
    ============================================================ */
-function renderDashboard() {
-  const hist = getHistory();
+async function renderDashboard() {
+  const hist = currentUser ? await loadUserHistory(currentUser) : [];
   $("dash-welcome").textContent = "Welcome back, " + currentUser + "!";
   const empty = hist.length === 0;
   $("dash-empty").classList.toggle("hidden", !empty);

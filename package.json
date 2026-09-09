@@ -1,0 +1,15 @@
+{
+  "name": "placementpro-shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PlacementPro shared multi-user portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongodb": "^6.9.0"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "users": [
+    {
+      "username": "admin",
+      "fullName": "Portal Admin",
+      "registerNumber": "ADMIN",
+      "phone": "0000000000",
+      "department": "ADMIN",
+      "year": "admin",
+      "role": "admin",
+      "created": "2026-09-09T04:21:55.098Z",
+      "salt": "45bb6c81a1891060d7ba11aead379e6f",
+      "passwordHash": "fd44c29bd67f112ea2b780f0b33aa254730226198bdeeac94e440f8972025ec87f434a2befd45a6bb5e436529718c3a40ff58dbce99adc519171aefa7d007317"
+    },
+    {
+      "username": "alicestudent02",
+      "fullName": "Alice Student",
+      "registerNumber": "20230001",
+      "phone": "9876543210",
+      "department": "CSE",
+      "year": "2",
+      "role": "student",
+      "created": "2026-09-09T04:21:55.165Z",
+      "salt": "bc39272023fbd7ecd63448dc4c3a9a13",
+      "passwordHash": "827a58cbd609a5e754587d18898928bcbd9019e422bda8ea3eed96cdcf0504b972c7c58ef8f036552a3844fe4d06b6b8ecd26f35a5f7f3ba33b44b33fe32cd49"
+    }
+  ],
+  "history": {}
+}
