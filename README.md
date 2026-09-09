@@ -39,6 +39,7 @@ placement-test-portal/
   category performance bars, recent history
 - AI Study Coach: ask Gemini for a personalised revision plan using recent scores
 - Admin overview: inspect all local users, attempts, averages and latest activity
+- Placement drive management: publish drives, define eligibility, accept registrations and update selection status
 - Dark/light theme toggle, fully responsive down to mobile
 
 ## How to Run
@@ -58,7 +59,7 @@ python -m http.server 5500
 **Option C - double-click** `index.html`. Everything works from the file system too;
 only the coding judge needs an internet connection.
 
-Register with your full name, register number, phone, department, year and password. The username is generated automatically from your name and year, for example `Hariharan` in year 4 becomes `hariharan04`. Data stays in your browser.
+Register with your full name, register number, phone, department, year, CGPA and password. The username is generated automatically from your name and year, for example `Hariharan` in year 4 becomes `hariharan04`. Data stays in your browser.
 
 ### AI Study Coach
 
@@ -67,6 +68,16 @@ Open Dashboard, paste a Gemini API key into the AI Study Coach card, save it, an
 ### Admin Demo
 
 Log in with `admin` / `intel@123` to open the Admin tab. It aggregates the users and histories stored in this browser's localStorage. Students can use `Forgot password?` to set a new password for an existing local account. Admin password reset is intentionally disabled in the student screen. This is useful for a local demo only; it is not server-side authentication or multi-device analytics. Replace the demo credentials and add a real backend authorization layer for production.
+
+### Placement drive management
+
+Open **Placement Drives** after signing in. Students can search and filter published drives,
+register once when their department, year and CGPA match the eligibility rules, and track
+their status. The administrator can publish drives and update each registration to
+`registered`, `shortlisted`, `selected` or `rejected`.
+
+See [`docs/requirements.md`](docs/requirements.md) for the FRD and
+[`docs/er-diagram.md`](docs/er-diagram.md) for the data model.
 
 ## How to Add New Questions
 

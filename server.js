@@ -47,7 +47,9 @@ function ensureDb() {
     const initialDb = {
       users: [admin],
       history: {},
-      accessRequests: []
+      accessRequests: [],
+      drives: [],
+      registrations: []
     };
     fs.writeFileSync(DB_PATH, JSON.stringify(initialDb, null, 2));
   }
@@ -59,7 +61,7 @@ function readLocalDb() {
     const raw = fs.readFileSync(DB_PATH, 'utf8');
     return JSON.parse(raw);
   } catch (error) {
-    return { users: [], history: {}, accessRequests: [] };
+    return { users: [], history: {}, accessRequests: [], drives: [], registrations: [] };
   }
 }
 
@@ -88,11 +90,13 @@ async function readDb() {
     const users = await mongoDb.collection('users').find({}).toArray();
     const historyRows = await mongoDb.collection('history').find({}).toArray();
     const accessRequests = await mongoDb.collection('accessRequests').find({}).toArray();
+    const drives = await mongoDb.collection('drives').find({}).toArray();
+    const registrations = await mongoDb.collection('registrations').find({}).toArray();
     const history = {};
     for (const row of historyRows) {
       history[row.username] = Array.isArray(row.entries) ? row.entries : [];
     }
-    return { users, history, accessRequests };
+    return { users, history, accessRequests, drives, registrations };
   }
 
   return readLocalDb();
@@ -104,6 +108,8 @@ async function writeDb(data) {
     const usersCollection = mongoDb.collection('users');
     const historyCollection = mongoDb.collection('history');
     const accessRequestsCollection = mongoDb.collection('accessRequests');
+    const drivesCollection = mongoDb.collection('drives');
+    const registrationsCollection = mongoDb.collection('registrations');
 
     await usersCollection.deleteMany({});
     if (Array.isArray(data.users) && data.users.length) {
@@ -121,6 +127,14 @@ async function writeDb(data) {
     await accessRequestsCollection.deleteMany({});
     if (Array.isArray(data.accessRequests) && data.accessRequests.length) {
       await accessRequestsCollection.insertMany(data.accessRequests);
+    }
+    await drivesCollection.deleteMany({});
+    if (Array.isArray(data.drives) && data.drives.length) {
+      await drivesCollection.insertMany(data.drives);
+    }
+    await registrationsCollection.deleteMany({});
+    if (Array.isArray(data.registrations) && data.registrations.length) {
+      await registrationsCollection.insertMany(data.registrations);
     }
     return;
   }
@@ -141,6 +155,68 @@ function isValidPassword(password, user) {
   return hashPassword(password, user.salt) === user.passwordHash;
 }
 
+function normaliseList(value) {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+  return String(value || '').split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function validateDriveInput(body) {
+  const title = String(body?.title || '').trim();
+  const company = String(body?.company || '').trim();
+  const location = String(body?.location || '').trim();
+  const driveDate = String(body?.driveDate || '').trim();
+  const deadline = String(body?.deadline || '').trim();
+  const description = String(body?.description || '').trim();
+  const minCgpa = Number(body?.minCgpa);
+  const eligibleDepartments = normaliseList(body?.eligibleDepartments);
+  const eligibleYears = normaliseList(body?.eligibleYears);
+
+  if (!title || title.length > 120 || !company || company.length > 100 || !location || !driveDate || !deadline || !description) {
+    return { error: 'Title, company, location, dates and description are required.' };
+  }
+  if (!Number.isFinite(minCgpa) || minCgpa < 0 || minCgpa > 10) {
+    return { error: 'Minimum CGPA must be a number between 0 and 10.' };
+  }
+  if (!eligibleDepartments.length || !eligibleYears.length) {
+    return { error: 'At least one eligible department and year are required.' };
+  }
+  if (Number.isNaN(Date.parse(driveDate)) || Number.isNaN(Date.parse(deadline)) || new Date(deadline) > new Date(driveDate)) {
+    return { error: 'Enter valid dates and ensure the deadline is not after the drive date.' };
+  }
+  return {
+    value: {
+      title,
+      company,
+      location,
+      driveDate,
+      deadline,
+      description,
+      minCgpa,
+      eligibleDepartments,
+      eligibleYears
+    }
+  };
+}
+
+function publicDrive(drive, registrationCount = 0) {
+  return { ...drive, registrationCount };
+}
+
+function findDrive(db, id) {
+  return (db.drives || []).find((drive) => drive.id === id);
+}
+
+function isEligible(user, drive) {
+  return Boolean(
+    user &&
+    drive &&
+    Number.isFinite(Number(user.cgpa)) &&
+    Number(user.cgpa) >= drive.minCgpa &&
+    drive.eligibleDepartments.includes(String(user.department)) &&
+    drive.eligibleYears.includes(String(user.year))
+  );
+}
+
 app.get('/api/health', async (req, res) => {
   const mongoDb = await getMongoDb();
   res.json({
@@ -156,9 +232,9 @@ app.get('/api/users', async (req, res) => {
 });
 
 app.post('/api/auth/register', async (req, res) => {
-  const { username, fullName, registerNumber, phone, department, year, password } = req.body || {};
+  const { username, fullName, registerNumber, phone, department, year, cgpa, password } = req.body || {};
 
-  if (!username || !fullName || !registerNumber || !phone || !department || !year || !password) {
+  if (!username || !fullName || !registerNumber || !phone || !department || !year || cgpa === undefined || !password) {
     return res.status(400).json({ message: 'All required fields are missing.' });
   }
 
@@ -168,6 +244,9 @@ app.post('/api/auth/register', async (req, res) => {
 
   if (String(password).length < 4) {
     return res.status(400).json({ message: 'Password must be at least 4 characters.' });
+  }
+  if (!Number.isFinite(Number(cgpa)) || Number(cgpa) < 0 || Number(cgpa) > 10) {
+    return res.status(400).json({ message: 'CGPA must be a number between 0 and 10.' });
   }
 
   const db = await readDb();
@@ -182,6 +261,7 @@ app.post('/api/auth/register', async (req, res) => {
     phone: String(phone).trim(),
     department: String(department).trim(),
     year: String(year).trim(),
+    cgpa: Number(cgpa),
     role: 'student',
     created: new Date().toISOString(),
     ...makePasswordRecord(String(password))
@@ -273,6 +353,119 @@ app.delete('/api/history/:username', async (req, res) => {
   res.json({ ok: true, history: [] });
 });
 
+app.get('/api/drives', async (req, res) => {
+  const db = await readDb();
+  const search = String(req.query.search || '').trim().toLowerCase();
+  const department = String(req.query.department || '').trim();
+  const year = String(req.query.year || '').trim();
+  const drives = (db.drives || [])
+    .filter((drive) => drive.status !== 'archived')
+    .filter((drive) => !search || [drive.title, drive.company, drive.location].some((value) => value.toLowerCase().includes(search)))
+    .filter((drive) => !department || drive.eligibleDepartments.includes(department))
+    .filter((drive) => !year || drive.eligibleYears.includes(year))
+    .sort((a, b) => new Date(a.driveDate) - new Date(b.driveDate))
+    .map((drive) => publicDrive(drive, (db.registrations || []).filter((item) => item.driveId === drive.id).length));
+  res.json({ drives });
+});
+
+app.post('/api/drives', async (req, res) => {
+  if (String(req.body?.createdBy || '').toLowerCase() !== 'admin') {
+    return res.status(403).json({ message: 'Only portal administrators can create placement drives.' });
+  }
+  const validated = validateDriveInput(req.body);
+  if (validated.error) return res.status(400).json({ message: validated.error });
+  const db = await readDb();
+  const drive = {
+    id: crypto.randomUUID(),
+    ...validated.value,
+    status: 'published',
+    createdBy: 'admin',
+    createdAt: new Date().toISOString()
+  };
+  db.drives = Array.isArray(db.drives) ? db.drives : [];
+  db.drives.push(drive);
+  await writeDb(db);
+  res.status(201).json({ drive: publicDrive(drive) });
+});
+
+app.put('/api/drives/:id', async (req, res) => {
+  if (String(req.body?.updatedBy || '').toLowerCase() !== 'admin') {
+    return res.status(403).json({ message: 'Only portal administrators can update placement drives.' });
+  }
+  const validated = validateDriveInput(req.body);
+  if (validated.error) return res.status(400).json({ message: validated.error });
+  const db = await readDb();
+  const drive = findDrive(db, req.params.id);
+  if (!drive) return res.status(404).json({ message: 'Placement drive not found.' });
+  Object.assign(drive, validated.value, { updatedAt: new Date().toISOString() });
+  await writeDb(db);
+  res.json({ drive: publicDrive(drive) });
+});
+
+app.delete('/api/drives/:id', async (req, res) => {
+  if (String(req.body?.deletedBy || '').toLowerCase() !== 'admin') {
+    return res.status(403).json({ message: 'Only portal administrators can archive placement drives.' });
+  }
+  const db = await readDb();
+  const drive = findDrive(db, req.params.id);
+  if (!drive) return res.status(404).json({ message: 'Placement drive not found.' });
+  drive.status = 'archived';
+  drive.updatedAt = new Date().toISOString();
+  await writeDb(db);
+  res.json({ ok: true });
+});
+
+app.get('/api/registrations', async (req, res) => {
+  const username = String(req.query.username || '').trim();
+  if (!username) return res.status(400).json({ message: 'Username is required.' });
+  const db = await readDb();
+  res.json({ registrations: (db.registrations || []).filter((item) => item.username === username) });
+});
+
+app.post('/api/drives/:id/registrations', async (req, res) => {
+  const username = String(req.body?.username || '').trim();
+  if (!username) return res.status(400).json({ message: 'Username is required.' });
+  const db = await readDb();
+  const drive = findDrive(db, req.params.id);
+  const user = findUserByUsername(db, username);
+  if (!drive) return res.status(404).json({ message: 'Placement drive not found.' });
+  if (!user || user.username.toLowerCase() === 'admin') return res.status(404).json({ message: 'Student account not found.' });
+  if (!isEligible(user, drive)) return res.status(403).json({ message: 'You do not meet this drive eligibility criteria.' });
+  if (new Date(drive.deadline) < new Date()) return res.status(400).json({ message: 'Registration deadline has passed.' });
+  db.registrations = Array.isArray(db.registrations) ? db.registrations : [];
+  if (db.registrations.some((item) => item.driveId === drive.id && item.username === user.username)) {
+    return res.status(409).json({ message: 'You are already registered for this drive.' });
+  }
+  const registration = {
+    id: crypto.randomUUID(),
+    driveId: drive.id,
+    username: user.username,
+    status: 'registered',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  db.registrations.push(registration);
+  await writeDb(db);
+  res.status(201).json({ registration });
+});
+
+app.patch('/api/registrations/:id/status', async (req, res) => {
+  if (String(req.body?.updatedBy || '').toLowerCase() !== 'admin') {
+    return res.status(403).json({ message: 'Only portal administrators can update selection status.' });
+  }
+  const status = String(req.body?.status || '').trim();
+  if (!['registered', 'shortlisted', 'selected', 'rejected'].includes(status)) {
+    return res.status(400).json({ message: 'Invalid registration status.' });
+  }
+  const db = await readDb();
+  const registration = (db.registrations || []).find((item) => item.id === req.params.id);
+  if (!registration) return res.status(404).json({ message: 'Registration not found.' });
+  registration.status = status;
+  registration.updatedAt = new Date().toISOString();
+  await writeDb(db);
+  res.json({ registration });
+});
+
 app.get('/api/admin', async (req, res) => {
   const db = await readDb();
   const summary = db.users
@@ -291,6 +484,8 @@ app.get('/api/admin', async (req, res) => {
   res.json({
     users: summary,
     accessRequests: (db.accessRequests || []).filter((request) => request.status !== 'verified'),
+    drives: db.drives || [],
+    registrations: db.registrations || [],
     totalAttempts: summary.reduce((sum, user) => sum + user.history.length, 0),
     count: summary.length
   });

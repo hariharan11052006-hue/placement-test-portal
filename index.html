@@ -125,6 +125,10 @@
           </select>
         </label>
         <label class="field">
+          <span>Current CGPA</span>
+          <input type="number" id="register-cgpa" min="0" max="10" step="0.01" placeholder="e.g. 8.2" required />
+        </label>
+        <label class="field">
           <span>Generated Username</span>
           <input type="text" id="register-username" placeholder="Your username will appear here" maxlength="30" readonly required />
         </label>
@@ -160,12 +164,14 @@
           <div id="mobile-profile-panel" class="mobile-profile-panel hidden">
             <div class="mobile-profile-summary"><span id="mobile-profile-initial" class="profile-avatar">U</span><div><strong id="mobile-profile-name">User</strong><small id="mobile-profile-status">Student account</small></div></div>
             <button class="nav-link mobile-dashboard-link" data-nav="dashboard">Dashboard</button>
+            <button class="nav-link" data-nav="drives">Placement Drives</button>
             <button id="mobile-theme-toggle" class="btn btn-outline btn-sm btn-block">Toggle Theme</button>
             <button id="mobile-logout-btn" class="btn btn-outline btn-sm btn-block">Logout</button>
             <button id="request-admin-access-btn" class="btn btn-outline btn-sm btn-block">Request Admin Access</button>
             <div id="otp-access-controls" class="otp-access-controls hidden"><input id="access-otp-input" inputmode="numeric" maxlength="4" placeholder="4-digit OTP" /><button id="verify-access-otp-btn" class="btn btn-primary btn-sm">Verify OTP</button></div>
           </div>
           <button class="nav-link" data-nav="home">Home</button>
+          <button class="nav-link" data-nav="drives">Placement Drives</button>
           <button class="nav-link" data-nav="categories">Tests</button>
           <button class="nav-link" data-nav="companies">Companies</button>
           <button class="nav-link" data-nav="coding">Coding</button>
@@ -254,6 +260,52 @@
             <div class="glass-card cat-preview"><span class="cat-dot dot-purple"></span><h4>Company Mocks</h4><p>Section mixes modelled on reported TCS, Infosys, Amazon and more.</p></div>
           </div>
           <p class="disclaimer-line">Practice content is based on publicly shared previous-test patterns and interview experiences. Not affiliated with any company.</p>
+        </div>
+      </section>
+
+      <!-- ===================== PLACEMENT DRIVES ===================== -->
+      <section id="screen-drives" class="screen hidden">
+        <div class="container section">
+          <div class="page-head row-between">
+            <div>
+              <h2>Placement Drives</h2>
+              <p>Find eligible opportunities, register before the deadline and track your selection status.</p>
+            </div>
+            <button id="drive-refresh-btn" class="btn btn-outline btn-sm">Refresh Drives</button>
+          </div>
+
+          <div class="glass-card drive-filters">
+            <label class="field"><span>Search</span><input id="drive-search" type="search" placeholder="Company, role or location" maxlength="80" /></label>
+            <label class="field"><span>Department</span><select id="drive-department"><option value="">All departments</option><option>CSE</option><option>IT</option><option>ECE</option><option>EEE</option><option>MECH</option><option>CIVIL</option><option>AIDS</option></select></label>
+            <label class="field"><span>Year</span><select id="drive-year"><option value="">All years</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="mba">MBA</option></select></label>
+          </div>
+          <div id="drive-message" class="auth-message hidden"></div>
+          <div id="drive-list" class="drive-grid"></div>
+
+          <section id="admin-drive-panel" class="glass-card admin-drive-panel hidden">
+            <div class="row-between"><div><span class="eyebrow">Admin tools</span><h3>Publish a placement drive</h3></div></div>
+            <form id="drive-form" class="drive-form">
+              <label class="field"><span>Role / drive title</span><input name="title" required maxlength="120" placeholder="Software Engineer" /></label>
+              <label class="field"><span>Company</span><input name="company" required maxlength="100" placeholder="Acme Technologies" /></label>
+              <label class="field"><span>Location</span><input name="location" required maxlength="100" placeholder="Chennai / Hybrid" /></label>
+              <label class="field"><span>Drive date</span><input name="driveDate" type="date" required /></label>
+              <label class="field"><span>Registration deadline</span><input name="deadline" type="date" required /></label>
+              <label class="field"><span>Minimum CGPA</span><input name="minCgpa" type="number" min="0" max="10" step="0.01" value="6" required /></label>
+              <label class="field"><span>Eligible departments</span><input name="eligibleDepartments" required placeholder="CSE, IT" /></label>
+              <label class="field"><span>Eligible years</span><input name="eligibleYears" required placeholder="3, 4" /></label>
+              <label class="field drive-description"><span>Description</span><textarea name="description" required maxlength="1000" placeholder="Rounds, skills and package details"></textarea></label>
+              <button class="btn btn-primary" type="submit">Publish Drive</button>
+            </form>
+            <div class="admin-registration-section">
+              <h4>Registration and selection management</h4>
+              <div id="admin-registration-list" class="registration-list"></div>
+            </div>
+          </section>
+
+          <section class="glass-card registration-card">
+            <div class="row-between"><h3>My registrations</h3><span id="registration-count" class="eyebrow">0 active</span></div>
+            <div id="registration-list" class="registration-list"></div>
+          </section>
         </div>
       </section>
 

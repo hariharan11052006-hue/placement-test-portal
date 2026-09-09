@@ -166,6 +166,89 @@ input, select, textarea { font-family: inherit; }
 .btn-block { inline-size: 100%; }
 .btn-lg { padding: 14px 28px; font-size: 1.02rem; border-radius: 13px; }
 .btn-sm { padding: 8px 14px; font-size: 0.86rem; }
+
+.drive-filters, .drive-form {
+  display: grid;
+  gap: 16px;
+}
+.drive-filters {
+  grid-template-columns: 2fr 1fr 1fr;
+  padding: 18px;
+  margin-block-end: 22px;
+}
+.drive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+.drive-card {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.drive-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.drive-card-head h3 { margin-block-end: 4px; }
+.company-mark {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff;
+  font-weight: 800;
+}
+.drive-meta, .drive-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: .82rem;
+}
+.drive-tags span, .status-pill {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--option-bg);
+  color: var(--text);
+}
+.admin-drive-panel, .registration-card {
+  padding: 22px;
+  margin-block-start: 22px;
+}
+.drive-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-block-start: 18px;
+}
+.drive-description { grid-column: 1 / -1; }
+.drive-form textarea { min-block-size: 90px; resize: vertical; }
+.registration-list { display: grid; gap: 10px; margin-block-start: 14px; }
+.registration-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+.status-registered { color: var(--primary); }
+.status-shortlisted { color: var(--warning); }
+.status-selected { color: var(--success); }
+.status-rejected { color: var(--danger); }
+.admin-registration-section { margin-block-start: 30px; }
+.admin-registration-section h4 { margin-block-end: 10px; }
+.registration-status {
+  padding: 7px 9px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
 .auth-link-btn { display: block; margin: 13px auto 0; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
 .auth-link-btn:hover { color: var(--primary-2); text-decoration: underline; }
 .field select { inline-size: 100%; padding: 12px 14px; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); background: var(--input-bg); color: var(--text); outline: none; }
@@ -1534,6 +1617,10 @@ input, select, textarea { font-family: inherit; }
   .request-otp { flex: 1; inline-size: auto; }
   .ai-coach-controls { flex-direction: column; }
   .ai-coach-controls .btn { inline-size: 100%; }
+  .drive-filters, .drive-form { grid-template-columns: 1fr; }
+  .drive-description { grid-column: auto; }
+  .registration-row { align-items: flex-start; flex-direction: column; }
+  .registration-status { inline-size: 100%; }
   #app-footer { padding: 20px 16px 26px; }
 }
 

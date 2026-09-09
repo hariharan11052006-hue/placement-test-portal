@@ -141,6 +141,7 @@ function initTheme() {
    ============================================================ */
 const NAV_SCREENS = {
   home: "screen-home",
+  drives: "screen-drives",
   categories: "screen-categories",
   companies: "screen-companies",
   dashboard: "screen-dashboard",
@@ -175,6 +176,7 @@ function navigate(dest) {
     return;
   }
   const screenId = NAV_SCREENS[dest] || "screen-home";
+  if (dest === "drives") renderDrives();
   if (dest === "dashboard") renderDashboard();
   if (dest === "admin") renderAdmin();
   showScreen(screenId);
@@ -368,6 +370,7 @@ async function registerUser(e) {
   const departmentCode = $("register-department").value;
   const department = departmentCode === "OTHER" ? $("register-other-department").value.trim() : departmentCode;
   const year = $("register-year").value;
+  const cgpa = Number($("register-cgpa").value);
   updateGeneratedUsername();
   const name = $("register-username").value.trim();
   const pass = $("register-password").value;
@@ -386,6 +389,10 @@ async function registerUser(e) {
   }
   if (!department || !year) {
     showAuthMessage("Select your department and year of study.");
+    return;
+  }
+  if (!Number.isFinite(cgpa) || cgpa < 0 || cgpa > 10) {
+    showAuthMessage("Enter a CGPA between 0 and 10.");
     return;
   }
   if (name === ADMIN_USER) {
@@ -411,6 +418,7 @@ async function registerUser(e) {
         phone,
         department,
         year,
+        cgpa,
         password: pass
       })
     });
@@ -419,7 +427,7 @@ async function registerUser(e) {
   } catch (error) {
     if (isFileMode()) {
       try {
-        saveLocalAccount({ username: name, fullName, registerNumber, phone, department, year, role: "student", password: pass });
+        saveLocalAccount({ username: name, fullName, registerNumber, phone, department, year, cgpa, role: "student", password: pass });
         showToast("Account created in this browser. Welcome aboard!", "success");
         loginUserByName(name);
         return;
@@ -493,6 +501,110 @@ function enterApp() {
   }
 }
 
+function showDriveMessage(text, ok = false) {
+    const message = $("drive-message");
+    message.textContent = text;
+    message.classList.remove("hidden");
+    message.classList.toggle("success", ok);
+  }
+
+async function renderDrives() {
+    const list = $("drive-list");
+    const search = $("drive-search").value.trim();
+    const department = $("drive-department").value;
+    const year = $("drive-year").value;
+    $("admin-drive-panel").classList.toggle("hidden", currentUser !== ADMIN_USER);
+    list.innerHTML = '<div class="empty-state"><p>Loading placement drives...</p></div>';
+    try {
+      const query = new URLSearchParams({ search, department, year });
+      const data = await apiFetch("/api/drives?" + query.toString());
+      const registrations = await apiFetch("/api/registrations?username=" + encodeURIComponent(currentUser));
+      const registeredIds = new Set((registrations.registrations || []).map((item) => item.driveId));
+      list.innerHTML = data.drives.length ? data.drives.map((drive) => {
+        const registered = registeredIds.has(drive.id);
+        return '<article class="glass-card drive-card"><div class="drive-card-head"><span class="company-mark">' +
+          escapeHtml(drive.company.slice(0, 2).toUpperCase()) + '</span><div><h3>' + escapeHtml(drive.title) +
+          '</h3><p>' + escapeHtml(drive.company) + ' · ' + escapeHtml(drive.location) + '</p></div></div><p>' +
+          escapeHtml(drive.description) + '</p><div class="drive-meta"><span>Drive: ' + escapeHtml(fmtDate(drive.driveDate)) +
+          '</span><span>Apply by: ' + escapeHtml(fmtDate(drive.deadline)) + '</span><span>CGPA ' + drive.minCgpa.toFixed(2) +
+          '+</span></div><div class="drive-tags">' + drive.eligibleDepartments.map((item) => '<span>' + escapeHtml(item) +
+          '</span>').join("") + '<span>Years ' + escapeHtml(drive.eligibleYears.join(", ")) + '</span></div><button class="btn ' +
+          (registered ? "btn-outline" : "btn-primary") + ' drive-register-btn" data-drive-id="' + escapeHtml(drive.id) +
+          '" ' + (registered ? "disabled" : "") + '>' + (registered ? "Registered" : "Register now") + '</button></article>';
+      }).join("") : '<div class="glass-card empty-state"><h4>No matching drives</h4><p>Try changing your filters or check back after a drive is published.</p></div>';
+      renderMyRegistrations(registrations.registrations || [], data.drives);
+      if (currentUser === ADMIN_USER) renderAdminRegistrations(data.drives);
+    } catch (error) {
+      list.innerHTML = '<div class="glass-card empty-state"><h4>Unable to load drives</h4><p>' + escapeHtml(error.message) + '</p></div>';
+    }
+  }
+
+function renderMyRegistrations(registrations, drives) {
+    $("registration-count").textContent = registrations.length + " active";
+    $("registration-list").innerHTML = registrations.length ? registrations.map((item) => {
+      const drive = drives.find((candidate) => candidate.id === item.driveId);
+      return '<div class="registration-row"><strong>' + escapeHtml(drive ? drive.company + " - " + drive.title : item.driveId) +
+        '</strong><span class="status-pill status-' + escapeHtml(item.status) + '">' + escapeHtml(item.status) + '</span></div>';
+    }).join("") : '<p class="muted-copy">You have not registered for a placement drive yet.</p>';
+  }
+
+async function renderAdminRegistrations(drives) {
+    const output = $("admin-registration-list");
+    try {
+      const data = await apiFetch("/api/admin");
+      const rows = [];
+      (data.registrations || []).forEach((item) => {
+        const drive = drives.find((candidate) => candidate.id === item.driveId);
+        if (drive) rows.push({ drive, item });
+      });
+      output.innerHTML = rows.length ? rows.map(({ drive, item }) => '<div class="registration-row"><strong>' +
+        escapeHtml(drive.company + " - " + drive.title) + '</strong><span>' + escapeHtml(item.username) +
+        '</span><select class="registration-status" data-registration-id="' + escapeHtml(item.id) + '">' +
+        ["registered", "shortlisted", "selected", "rejected"].map((status) => '<option ' + (status === item.status ? "selected" : "") +
+        '>' + status + '</option>').join("") + '</select></div>').join("") : '<p class="muted-copy">No registrations yet.</p>';
+    } catch (error) {
+      output.innerHTML = '<p class="muted-copy">' + escapeHtml(error.message) + '</p>';
+    }
+  }
+
+async function registerForDrive(driveId) {
+    try {
+      await apiFetch("/api/drives/" + encodeURIComponent(driveId) + "/registrations", {
+        method: "POST",
+        body: JSON.stringify({ username: currentUser })
+      });
+      showDriveMessage("Registration submitted successfully.", true);
+      renderDrives();
+    } catch (error) {
+      showDriveMessage(error.message);
+    }
+  }
+
+async function publishDrive(event) {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.target).entries());
+    values.createdBy = currentUser;
+    try {
+      await apiFetch("/api/drives", { method: "POST", body: JSON.stringify(values) });
+      event.target.reset();
+      showDriveMessage("Placement drive published.", true);
+      renderDrives();
+    } catch (error) {
+      showDriveMessage(error.message);
+    }
+  }
+
+async function updateRegistrationStatus(id, status) {
+    try {
+      await apiFetch("/api/registrations/" + encodeURIComponent(id) + "/status", {
+        method: "PATCH",
+        body: JSON.stringify({ status, updatedBy: currentUser })
+      });
+      showDriveMessage("Selection status updated.", true);
+    } catch (error) {
+      showDriveMessage(error.message);
+    }
+  }
 function updateMobileProfilePanel() {
   const isAdmin = currentUser === ADMIN_USER;
   $("mobile-profile-name").textContent = currentUser || "User";
@@ -1703,6 +1815,11 @@ function wireEvents() {
   $("register-name").addEventListener("input", updateGeneratedUsername);
   $("register-year").addEventListener("change", updateGeneratedUsername);
   $("register-department").addEventListener("change", toggleOtherDepartment);
+  $("drive-refresh-btn").addEventListener("click", renderDrives);
+  $("drive-search").addEventListener("input", renderDrives);
+  $("drive-department").addEventListener("change", renderDrives);
+  $("drive-year").addEventListener("change", renderDrives);
+  $("drive-form").addEventListener("submit", publishDrive);
   $("reset-form").addEventListener("submit", resetPassword);
   $("forgot-password-btn").addEventListener("click", showResetForm);
   $("back-to-login-btn").addEventListener("click", () => switchAuthTab("login"));
@@ -1723,6 +1840,8 @@ function wireEvents() {
 
   /* Global nav + action buttons (event delegation) */
   document.addEventListener("click", (e) => {
+    const registerButton = e.target.closest(".drive-register-btn");
+    if (registerButton) { registerForDrive(registerButton.dataset.driveId); return; }
     const authFocus = e.target.closest("[data-auth-focus]");
     if (authFocus) { setAuthFocus(authFocus.dataset.authFocus); return; }
     const career = e.target.closest("[data-career]");
@@ -1736,6 +1855,10 @@ function wireEvents() {
     if (action === "company-tests") navigate("companies");
     if (action === "practice-test") startPracticeTest();
     if (action === "coding-challenge") openCodingHub();
+  });
+  document.addEventListener("change", (e) => {
+    const status = e.target.closest(".registration-status");
+    if (status) updateRegistrationStatus(status.dataset.registrationId, status.value);
   });
 
   /* Category + company screens are rendered dynamically */
