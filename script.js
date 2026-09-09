@@ -1779,7 +1779,6 @@ function wireEvents() {
   $("go-home-btn").addEventListener("click", () => navigate("home"));
 
   /* Dashboard */
-  $("clear-history-btn").addEventListener("click", resetMyData);
   $("save-ai-key-btn").addEventListener("click", saveAiKey);
   $("ask-ai-btn").addEventListener("click", askAiCoach);
   $("ai-prompt").addEventListener("keydown", (e) => {
