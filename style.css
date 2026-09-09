@@ -1471,8 +1471,9 @@ input, select, textarea { font-family: inherit; }
     box-shadow: -18px 0 42px rgba(8, 91, 135, 0.2);
     transform: translateX(105%);
     transition: transform var(--transition);
+    pointer-events: none;
   }
-  .header-nav.open { display: flex; transform: translateX(0); }
+  .header-nav.open { display: flex; transform: translateX(0); pointer-events: auto; }
   .mobile-profile-panel { display: grid; gap: 12px; padding: 4px 0 10px; border-block-end: 1px solid var(--glass-border); }
   .mobile-dashboard-link { display: block; inline-size: 100%; color: var(--heading); }
   .mobile-profile-summary { display: flex; align-items: center; gap: 10px; }
