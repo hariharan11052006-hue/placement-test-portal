@@ -1718,6 +1718,10 @@ function wireEvents() {
   });
   $("logout-btn").addEventListener("click", logoutUser);
   $("mobile-logout-btn").addEventListener("click", logoutUser);
+  $("mobile-menu-btn").addEventListener("click", () => {
+    $("header-nav").classList.toggle("open");
+    $("mobile-profile-panel").classList.toggle("hidden", !$("header-nav").classList.contains("open"));
+  });
   $("request-admin-access-btn").addEventListener("click", requestAdminAccess);
   $("verify-access-otp-btn").addEventListener("click", verifyAdminAccess);
 
