@@ -1457,7 +1457,7 @@ input, select, textarea { font-family: inherit; }
   .career-visual-right { transform: rotate(5deg); }
   .header-nav {
     position: fixed;
-    inset-block-start: 0;
+    inset-block-start: 61px;
     inset-block-end: 0;
     inset-inline-start: auto;
     inset-inline-end: 0;
