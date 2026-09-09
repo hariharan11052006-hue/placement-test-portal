@@ -1616,6 +1616,7 @@ function renderReview(filter) {
 async function renderDashboard() {
   const hist = currentUser ? await loadUserHistory(currentUser) : [];
   $("dash-welcome").textContent = "Welcome back, " + currentUser + "!";
+  renderTodayTestNotice(hist);
   const empty = hist.length === 0;
   $("dash-empty").classList.toggle("hidden", !empty);
   $("dash-content").classList.toggle("hidden", empty);
@@ -1665,6 +1666,20 @@ async function renderDashboard() {
       "<td>" + chip + "</td>";
     tbody.appendChild(tr);
   });
+}
+
+function renderTodayTestNotice(history) {
+  const notice = $("today-test-notice");
+  if (!notice) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const completedToday = history.some((item) => item.date && item.date.slice(0, 10) === today);
+  notice.classList.toggle("completed", completedToday);
+  $("today-test-title").textContent = completedToday ? "Today's test is complete" : "Your practice test is ready";
+  $("today-test-message").textContent = completedToday
+    ? "Great work. Keep your streak going tomorrow with another focused attempt."
+    : "Start now, stay focused and finish the test in one sitting. Do not leave it halfway.";
+  $("today-test-start-btn").classList.toggle("hidden", completedToday);
+  $("today-test-start-btn").textContent = "Start Today's Test";
 }
 
 function resetMyData() {
@@ -1812,6 +1827,7 @@ function wireEvents() {
   /* Dashboard */
   $("save-ai-key-btn").addEventListener("click", saveAiKey);
   $("ask-ai-btn").addEventListener("click", askAiCoach);
+  $("today-test-start-btn").addEventListener("click", startPracticeTest);
   $("ai-prompt").addEventListener("keydown", (e) => {
     if (e.key === "Enter") askAiCoach();
   });

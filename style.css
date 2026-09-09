@@ -364,6 +364,7 @@ input, select, textarea { font-family: inherit; }
 
 .header-nav { display: flex; gap: 4px; flex: 1; }
 .mobile-profile-panel { display: none; }
+.mobile-dashboard-link { display: none; }
 .nav-link {
   border: none;
   background: transparent;
@@ -449,6 +450,15 @@ input, select, textarea { font-family: inherit; }
   gap: 16px;
   flex-wrap: wrap;
 }
+.today-test-notice { display: flex; align-items: center; gap: 15px; margin-block-end: 22px; padding: 17px 19px; border-color: rgba(8, 120, 181, 0.34); background: linear-gradient(105deg, rgba(184, 237, 255, 0.72), rgba(239, 251, 255, 0.88)); }
+.today-test-notice.completed { border-color: rgba(34, 197, 94, 0.36); background: rgba(220, 252, 231, 0.72); }
+.today-test-icon { display: grid; place-items: center; inline-size: 35px; block-size: 35px; flex: 0 0 auto; border-radius: 50%; background: var(--primary); color: #fff; font-size: 1.15rem; font-weight: 800; box-shadow: 0 5px 14px rgba(8, 120, 181, 0.22); }
+.today-test-notice.completed .today-test-icon { background: var(--success); }
+.today-test-copy { flex: 1; min-inline-size: 0; }
+.today-test-copy .eyebrow { color: var(--primary); }
+.today-test-notice.completed .today-test-copy .eyebrow { color: var(--success); }
+.today-test-copy h3 { margin-block-start: 3px; font-size: 1.02rem; }
+.today-test-copy p { margin-block-start: 4px; font-size: 0.86rem; line-block-size: 1.4; }
 
 /* ============================================================
    HERO / HOME
@@ -1453,6 +1463,7 @@ input, select, textarea { font-family: inherit; }
   }
   .header-nav.open { display: flex; }
   .mobile-profile-panel { display: grid; gap: 12px; padding: 4px 0 10px; border-block-end: 1px solid var(--glass-border); }
+  .mobile-dashboard-link { display: block; inline-size: 100%; color: var(--heading); }
   .mobile-profile-summary { display: flex; align-items: center; gap: 10px; }
   .mobile-profile-summary strong, .mobile-profile-summary small { display: block; }
   .mobile-profile-summary small { margin-block-start: 2px; color: var(--text-muted); font-size: 0.76rem; }
@@ -1499,6 +1510,8 @@ input, select, textarea { font-family: inherit; }
   .admin-attempt-row, .admin-profile-empty { margin-inline-start: 20px; margin-inline-end: 20px; }
   .admin-student-modal .modal-actions { padding: 0 20px 20px; }
   .admin-profile-edit { padding-inline: 20px; }
+  .today-test-notice { align-items: flex-start; flex-wrap: wrap; }
+  .today-test-notice .btn { inline-size: 100%; margin-inline-start: 50px; }
   .admin-edit-grid { grid-template-columns: 1fr; }
   .access-request-row { align-items: flex-start; flex-direction: column; }
   .access-request-actions { inline-size: 100%; }

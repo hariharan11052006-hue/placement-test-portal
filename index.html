@@ -159,6 +159,7 @@
         <nav id="header-nav" class="header-nav">
           <div id="mobile-profile-panel" class="mobile-profile-panel hidden">
             <div class="mobile-profile-summary"><span id="mobile-profile-initial" class="profile-avatar">U</span><div><strong id="mobile-profile-name">User</strong><small id="mobile-profile-status">Student account</small></div></div>
+            <button class="nav-link mobile-dashboard-link" data-nav="dashboard">Dashboard</button>
             <button id="request-admin-access-btn" class="btn btn-outline btn-sm btn-block">Request Admin Access</button>
             <div id="otp-access-controls" class="otp-access-controls hidden"><input id="access-otp-input" inputmode="numeric" maxlength="4" placeholder="4-digit OTP" /><button id="verify-access-otp-btn" class="btn btn-primary btn-sm">Verify OTP</button></div>
           </div>
@@ -467,6 +468,15 @@
           </div>
 
           <div id="dash-content">
+            <section id="today-test-notice" class="today-test-notice glass-card">
+              <div class="today-test-icon">!</div>
+              <div class="today-test-copy">
+                <span class="eyebrow">Today's test</span>
+                <h3 id="today-test-title">Your practice test is ready</h3>
+                <p id="today-test-message">Start now, stay focused and finish the test in one sitting. Do not leave it halfway.</p>
+              </div>
+              <button id="today-test-start-btn" class="btn btn-primary btn-sm">Start Today's Test</button>
+            </section>
             <div class="kpi-grid">
               <div class="glass-card kpi-card"><span>Tests Completed</span><strong id="kpi-completed">0</strong></div>
               <div class="glass-card kpi-card"><span>Average Score</span><strong id="kpi-average">-</strong></div>
