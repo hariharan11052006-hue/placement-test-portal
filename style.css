@@ -1275,13 +1275,13 @@ input, select, textarea { font-family: inherit; }
 .admin-profile-empty { margin: 0 26px; padding: 13px; border: 1px dashed var(--glass-border); border-radius: var(--radius-sm); background: var(--option-bg); font-size: 0.86rem; }
 .admin-profile-edit { padding: 0 26px 4px; }
 .admin-profile-edit h4 { padding: 0 !important; margin: 0 0 12px !important; }
-.admin-edit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.admin-edit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-block-end: 12px; }
 .admin-edit-grid label { display: grid; gap: 5px; color: var(--text-muted); font-size: 0.72rem; font-weight: 700; }
 .admin-edit-grid input, .request-otp, .otp-access-controls input { min-inline-size: 0; padding: 9px 10px; border: 1px solid var(--glass-border); border-radius: 8px; background: var(--option-bg); color: var(--heading); font: inherit; }
 .access-request-list { padding: 0 20px 20px; }
-.access-request-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--glass-border); }
+.access-request-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-block-end: 1px solid var(--glass-border); }
 .access-request-row strong, .access-request-row small { display: block; }
-.access-request-row small { margin-top: 3px; color: var(--text-muted); font-size: 0.75rem; }
+.access-request-row small { margin-block-start: 3px; color: var(--text-muted); font-size: 0.75rem; }
 .access-request-actions, .otp-access-controls { display: flex; align-items: center; gap: 8px; }
 .request-otp { inline-size: 110px; }
 .access-approved { color: var(--success); font-size: 0.8rem; font-weight: 700; }
@@ -1449,10 +1449,10 @@ input, select, textarea { font-family: inherit; }
     display: none;
   }
   .header-nav.open { display: flex; }
-  .mobile-profile-panel { display: grid; gap: 12px; padding: 4px 0 10px; border-bottom: 1px solid var(--glass-border); }
+  .mobile-profile-panel { display: grid; gap: 12px; padding: 4px 0 10px; border-block-end: 1px solid var(--glass-border); }
   .mobile-profile-summary { display: flex; align-items: center; gap: 10px; }
   .mobile-profile-summary strong, .mobile-profile-summary small { display: block; }
-  .mobile-profile-summary small { margin-top: 2px; color: var(--text-muted); font-size: 0.76rem; }
+  .mobile-profile-summary small { margin-block-start: 2px; color: var(--text-muted); font-size: 0.76rem; }
   .mobile-profile-panel .profile-avatar { display: grid; place-items: center; inline-size: 34px; block-size: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; font-weight: 700; }
   .mobile-profile-panel .btn-block { inline-size: 100%; }
   .otp-access-controls input { flex: 1; }
