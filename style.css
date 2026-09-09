@@ -1459,18 +1459,18 @@ input, select, textarea { font-family: inherit; }
     position: fixed;
     inset-block-start: 61px;
     inset-block-end: 0;
-    inset-inline-start: auto;
-    inset-inline-end: 0;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
     inline-size: min(320px, 88vw);
     flex-direction: column;
     background: var(--surface-solid);
-    border-inline-start: 1px solid var(--glass-border);
+    border-inline-end: 1px solid var(--glass-border);
     padding: 76px 18px 20px;
     gap: 6px;
     z-index: 60;
     display: none;
-    box-shadow: -18px 0 42px rgba(8, 91, 135, 0.2);
-    transform: translateX(105%);
+    box-shadow: 18px 0 42px rgba(8, 91, 135, 0.2);
+    transform: translateX(-105%);
     transition: transform var(--transition);
     pointer-events: none;
   }
