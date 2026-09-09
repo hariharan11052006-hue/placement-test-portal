@@ -347,18 +347,23 @@ input, select, textarea { font-family: inherit; }
 }
 .header-inner {
   max-inline-size: 1280px;
-  margin: 0 auto;
-  padding: 10px 22px;
-  display: flex;
+    inset-block-start: 0;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    inline-size: min(320px, 88vw);
+    block-size: 100vh;
   align-items: center;
   gap: 20px;
-}
+    border-inline-start: 1px solid var(--glass-border);
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+    display: flex;
+    transform: translateX(100%);
+    transition: transform var(--transition), box-shadow var(--transition);
+    box-shadow: -18px 0 40px rgba(8, 91, 135, 0.16);
   text-decoration: none;
-}
+  .header-nav.open { transform: translateX(0); }
 .brand .brand-logo { inline-size: 40px; block-size: 40px; font-size: 0.88rem; border-radius: 11px; }
 .brand-name { font-weight: 800; font-size: 1.15rem; color: var(--heading); }
 
@@ -1476,6 +1481,9 @@ input, select, textarea { font-family: inherit; }
   .mobile-profile-panel .profile-avatar { display: grid; place-items: center; inline-size: 34px; block-size: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; font-weight: 700; }
   .mobile-profile-panel .btn-block { inline-size: 100%; }
   .otp-access-controls input { flex: 1; }
+  .header-actions > #theme-toggle, .header-actions > .user-chip, .header-actions > #logout-btn { display: none; }
+  .mobile-menu-action { display: block; inline-size: 100%; color: var(--heading); }
+  #mobile-menu-btn { position: relative; z-index: 51; }
   .nav-link { text-align: start; padding: 12px 14px; }
   .mobile-only { display: inline-flex; }
   .user-chip #user-name { display: none; }
