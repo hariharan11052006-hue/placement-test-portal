@@ -1447,6 +1447,7 @@ input, select, textarea { font-family: inherit; }
 }
 
 @media (max-inline-size: 860px) {
+  #app-header { z-index: 100; }
   .auth-layout { grid-template-columns: 1fr; max-inline-size: 520px; }
   .auth-visual { order: 2; padding: 22px; }
   .auth-card { order: 1; }
