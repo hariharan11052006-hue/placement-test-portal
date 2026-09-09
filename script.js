@@ -450,6 +450,7 @@ function enterApp() {
   $("user-name").textContent = currentUser;
   $("user-avatar-initial").textContent = currentUser.charAt(0);
   updateProfileBadge();
+  updateMobileProfilePanel();
   $("admin-nav-link").classList.toggle("hidden", currentUser !== ADMIN_USER);
   if (currentUser === ADMIN_USER) {
     renderAdmin();
@@ -457,6 +458,40 @@ function enterApp() {
   } else {
     loadUserHistory(currentUser).then(() => updateProfileBadge());
     showScreen("screen-home");
+  }
+}
+
+function updateMobileProfilePanel() {
+  const isAdmin = currentUser === ADMIN_USER;
+  $("mobile-profile-name").textContent = currentUser || "User";
+  $("mobile-profile-initial").textContent = (currentUser || "U").charAt(0).toUpperCase();
+  $("mobile-profile-status").textContent = isAdmin ? "Portal administrator" : "Student account";
+  $("request-admin-access-btn").classList.toggle("hidden", isAdmin);
+}
+
+async function requestAdminAccess() {
+  if (!currentUser || currentUser === ADMIN_USER) return;
+  try {
+    await apiFetch("/api/access/request", { method: "POST", body: JSON.stringify({ username: currentUser }) });
+    showToast("Request sent. Ask the admin for your 4-digit OTP.", "success");
+    $("request-admin-access-btn").textContent = "Request Sent";
+    $("request-admin-access-btn").disabled = true;
+    $("otp-access-controls").classList.remove("hidden");
+  } catch (error) {
+    showToast(error.message || "Unable to send access request.", "error");
+  }
+}
+
+async function verifyAdminAccess() {
+  const otp = $("access-otp-input").value.trim();
+  if (!/^\d{4}$/.test(otp)) { showToast("Enter the 4-digit OTP from the admin.", "error"); return; }
+  try {
+    await apiFetch("/api/access/verify", { method: "POST", body: JSON.stringify({ username: currentUser, otp }) });
+    $("otp-access-controls").classList.add("hidden");
+    $("request-admin-access-btn").textContent = "Admin Access Approved";
+    showToast("Admin access approved for your account.", "success");
+  } catch (error) {
+    showToast(error.message || "OTP verification failed.", "error");
   }
 }
 
@@ -526,9 +561,33 @@ async function renderAdmin() {
     document.querySelectorAll("[data-admin-student]").forEach((button) => {
       button.addEventListener("click", () => openAdminStudentProfile(button.dataset.adminStudent));
     });
+    renderAccessRequests(data.accessRequests || []);
   } catch (error) {
     $("admin-users-tbody").innerHTML = '<tr><td colspan="8">Unable to load admin data.</td></tr>';
   }
+}
+
+function renderAccessRequests(requests) {
+  const list = $("admin-access-requests");
+  if (!requests.length) { list.innerHTML = '<p class="admin-profile-empty">No pending access requests.</p>'; return; }
+  list.innerHTML = requests.map((request) => {
+    const action = request.status === "pending"
+      ? '<input class="request-otp" data-request-id="' + escapeHtml(request.id) + '" inputmode="numeric" maxlength="4" placeholder="4-digit OTP" /><button class="btn btn-primary btn-sm approve-access-btn" data-request-id="' + escapeHtml(request.id) + '">Approve</button>'
+      : '<span class="access-approved">OTP approved</span>';
+    return '<div class="access-request-row"><div><strong>' + escapeHtml(request.username) + '</strong><small>' + fmtDate(request.created) + '</small></div><div class="access-request-actions">' + action + '</div></div>';
+  }).join("");
+  list.querySelectorAll(".approve-access-btn").forEach((button) => button.addEventListener("click", () => approveAccessRequest(button.dataset.requestId)));
+}
+
+async function approveAccessRequest(id) {
+  const input = document.querySelector('.request-otp[data-request-id="' + id + '"]');
+  const otp = input ? input.value.trim() : "";
+  if (!/^\d{4}$/.test(otp)) { showToast("Use exactly 4 digits for the OTP.", "error"); return; }
+  try {
+    await apiFetch("/api/access/requests/" + encodeURIComponent(id) + "/approve", { method: "POST", body: JSON.stringify({ otp }) });
+    showToast("OTP approved. Share the 4 digits with the student.", "success");
+    renderAdmin();
+  } catch (error) { showToast(error.message || "Unable to approve request.", "error"); }
 }
 
 async function openAdminStudentProfile(name) {
@@ -548,13 +607,26 @@ async function openAdminStudentProfile(name) {
     ).join("");
     $("admin-student-profile-body").innerHTML =
       '<div class="admin-profile-head"><div class="admin-profile-avatar">' + escapeHtml((profile.fullName || name).charAt(0)) + '</div><div><h3>' + escapeHtml(profile.fullName || name) + '</h3><p>' + escapeHtml(name) + ' &middot; ' + escapeHtml(profile.department || "-") + ' &middot; Year ' + escapeHtml(profile.year === "mba" ? "MBA" : (profile.year || "-")) + '</p></div></div>' +
+      '<form id="admin-profile-edit-form" class="admin-profile-edit"><h4>Edit Profile</h4><div class="admin-edit-grid"><label>Full Name<input name="fullName" value="' + escapeHtml(profile.fullName || "") + '" required></label><label>Register Number<input name="registerNumber" value="' + escapeHtml(profile.registerNumber || "") + '" required></label><label>Phone<input name="phone" value="' + escapeHtml(profile.phone || "") + '" required></label><label>Department<input name="department" value="' + escapeHtml(profile.department || "") + '" required></label><label>Year<input name="year" value="' + escapeHtml(profile.year || "") + '" required></label></div><button class="btn btn-primary btn-sm" type="submit">Save Profile</button></form>' +
       '<div class="admin-profile-kpis"><div><span>Tests Finished</span><strong>' + history.length + '</strong></div><div><span>Average</span><strong>' + (history.length ? average + '%' : '-') + '</strong></div><div><span>Best</span><strong>' + (history.length ? Math.max.apply(null, history.map((item) => item.percentage || 0)) + '%' : '-') + '</strong></div></div>' +
       '<h4>Company Tests</h4>' + (companyRows ? '<div class="table-scroll"><table class="history-table admin-profile-table"><thead><tr><th>Company</th><th>Score</th><th>Completed</th></tr></thead><tbody>' + companyRows + '</tbody></table></div>' : '<p class="admin-profile-empty">No company tests completed yet.</p>') +
       '<h4 class="admin-attempt-title">All Completed Tests</h4>' + (attempts || '<p class="admin-profile-empty">No tests completed yet.</p>');
     $("modal-admin-student").classList.remove("hidden");
+    $("admin-profile-edit-form").addEventListener("submit", (event) => saveAdminStudentProfile(event, name));
   } catch (error) {
     showToast("Unable to load student profile.", "error");
   }
+}
+
+async function saveAdminStudentProfile(event, username) {
+  event.preventDefault();
+  const values = Object.fromEntries(new FormData(event.currentTarget).entries());
+  try {
+    await apiFetch("/api/admin/users/" + encodeURIComponent(username), { method: "PUT", body: JSON.stringify(values) });
+    showToast("Student profile updated.", "success");
+    closeAdminStudentProfile();
+    renderAdmin();
+  } catch (error) { showToast(error.message || "Unable to update profile.", "error"); }
 }
 
 function closeAdminStudentProfile() {
@@ -1594,7 +1666,12 @@ function wireEvents() {
     applyTheme(cur === "dark" ? "light" : "dark");
   });
   $("logout-btn").addEventListener("click", logoutUser);
-  $("mobile-menu-btn").addEventListener("click", () => $("header-nav").classList.toggle("open"));
+  $("mobile-menu-btn").addEventListener("click", () => {
+    $("header-nav").classList.toggle("open");
+    $("mobile-profile-panel").classList.toggle("hidden", !$("header-nav").classList.contains("open"));
+  });
+  $("request-admin-access-btn").addEventListener("click", requestAdminAccess);
+  $("verify-access-otp-btn").addEventListener("click", verifyAdminAccess);
 
   /* Global nav + action buttons (event delegation) */
   document.addEventListener("click", (e) => {
