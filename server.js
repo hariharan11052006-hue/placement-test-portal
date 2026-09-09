@@ -46,7 +46,8 @@ function ensureDb() {
 
     const initialDb = {
       users: [admin],
-      history: {}
+      history: {},
+      accessRequests: []
     };
     fs.writeFileSync(DB_PATH, JSON.stringify(initialDb, null, 2));
   }
@@ -58,7 +59,7 @@ function readLocalDb() {
     const raw = fs.readFileSync(DB_PATH, 'utf8');
     return JSON.parse(raw);
   } catch (error) {
-    return { users: [], history: {} };
+    return { users: [], history: {}, accessRequests: [] };
   }
 }
 
@@ -86,11 +87,12 @@ async function readDb() {
   if (mongoDb) {
     const users = await mongoDb.collection('users').find({}).toArray();
     const historyRows = await mongoDb.collection('history').find({}).toArray();
+    const accessRequests = await mongoDb.collection('accessRequests').find({}).toArray();
     const history = {};
     for (const row of historyRows) {
       history[row.username] = Array.isArray(row.entries) ? row.entries : [];
     }
-    return { users, history };
+    return { users, history, accessRequests };
   }
 
   return readLocalDb();
@@ -101,6 +103,7 @@ async function writeDb(data) {
   if (mongoDb) {
     const usersCollection = mongoDb.collection('users');
     const historyCollection = mongoDb.collection('history');
+    const accessRequestsCollection = mongoDb.collection('accessRequests');
 
     await usersCollection.deleteMany({});
     if (Array.isArray(data.users) && data.users.length) {
@@ -114,6 +117,10 @@ async function writeDb(data) {
     }));
     if (historyDocs.length) {
       await historyCollection.insertMany(historyDocs);
+    }
+    await accessRequestsCollection.deleteMany({});
+    if (Array.isArray(data.accessRequests) && data.accessRequests.length) {
+      await accessRequestsCollection.insertMany(data.accessRequests);
     }
     return;
   }
@@ -283,9 +290,64 @@ app.get('/api/admin', async (req, res) => {
 
   res.json({
     users: summary,
+    accessRequests: (db.accessRequests || []).filter((request) => request.status !== 'verified'),
     totalAttempts: summary.reduce((sum, user) => sum + user.history.length, 0),
     count: summary.length
   });
+});
+
+app.post('/api/access/request', async (req, res) => {
+  const username = String(req.body?.username || '').trim();
+  const db = await readDb();
+  const user = findUserByUsername(db, username);
+  if (!user || user.username.toLowerCase() === 'admin') return res.status(404).json({ message: 'User account not found.' });
+  db.accessRequests = Array.isArray(db.accessRequests) ? db.accessRequests : [];
+  const existing = db.accessRequests.find((request) => request.username === user.username && request.status === 'pending');
+  if (existing) return res.json({ ok: true, request: existing });
+  const request = { id: crypto.randomUUID(), username: user.username, status: 'pending', created: new Date().toISOString() };
+  db.accessRequests.push(request);
+  await writeDb(db);
+  res.status(201).json({ ok: true, request });
+});
+
+app.post('/api/access/requests/:id/approve', async (req, res) => {
+  const otp = String(req.body?.otp || '').trim();
+  if (!/^\d{4}$/.test(otp)) return res.status(400).json({ message: 'OTP must contain exactly 4 digits.' });
+  const db = await readDb();
+  const request = (db.accessRequests || []).find((item) => item.id === req.params.id && item.status === 'pending');
+  if (!request) return res.status(404).json({ message: 'Access request not found or already handled.' });
+  request.status = 'approved';
+  request.otpHash = hashPassword(otp, request.id);
+  request.otpExpires = Date.now() + 15 * 60 * 1000;
+  request.approved = new Date().toISOString();
+  await writeDb(db);
+  res.json({ ok: true, message: 'OTP generated. Share it with the user.' });
+});
+
+app.post('/api/access/verify', async (req, res) => {
+  const username = String(req.body?.username || '').trim();
+  const otp = String(req.body?.otp || '').trim();
+  if (!/^\d{4}$/.test(otp)) return res.status(400).json({ message: 'OTP must contain exactly 4 digits.' });
+  const db = await readDb();
+  const request = (db.accessRequests || []).slice().reverse().find((item) => item.username === username && item.status === 'approved');
+  if (!request || !request.otpExpires || request.otpExpires < Date.now() || hashPassword(otp, request.id) !== request.otpHash) return res.status(401).json({ message: 'Invalid or expired OTP.' });
+  request.status = 'verified';
+  request.verified = new Date().toISOString();
+  const user = findUserByUsername(db, username);
+  if (user) user.adminAccessGranted = true;
+  await writeDb(db);
+  res.json({ ok: true, message: 'Admin access approved for this account.' });
+});
+
+app.put('/api/admin/users/:username', async (req, res) => {
+  const db = await readDb();
+  const user = findUserByUsername(db, req.params.username);
+  if (!user || user.username.toLowerCase() === 'admin') return res.status(404).json({ message: 'Student account not found.' });
+  ['fullName', 'registerNumber', 'phone', 'department', 'year'].forEach((field) => {
+    if (typeof req.body?.[field] === 'string' && req.body[field].trim()) user[field] = req.body[field].trim();
+  });
+  await writeDb(db);
+  res.json({ ok: true, user: sanitizeUser(user) });
 });
 
 app.get('*', (req, res) => {

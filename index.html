@@ -157,6 +157,11 @@
         </a>
 
         <nav id="header-nav" class="header-nav">
+          <div id="mobile-profile-panel" class="mobile-profile-panel hidden">
+            <div class="mobile-profile-summary"><span id="mobile-profile-initial" class="profile-avatar">U</span><div><strong id="mobile-profile-name">User</strong><small id="mobile-profile-status">Student account</small></div></div>
+            <button id="request-admin-access-btn" class="btn btn-outline btn-sm btn-block">Request Admin Access</button>
+            <div id="otp-access-controls" class="otp-access-controls hidden"><input id="access-otp-input" inputmode="numeric" maxlength="4" placeholder="4-digit OTP" /><button id="verify-access-otp-btn" class="btn btn-primary btn-sm">Verify OTP</button></div>
+          </div>
           <button class="nav-link" data-nav="home">Home</button>
           <button class="nav-link" data-nav="categories">Tests</button>
           <button class="nav-link" data-nav="companies">Companies</button>
@@ -536,6 +541,10 @@
                 <tbody id="admin-users-tbody"></tbody>
               </table>
             </div>
+          </div>
+          <div class="glass-card admin-table-card">
+            <h4>Admin Access Requests</h4>
+            <div id="admin-access-requests" class="access-request-list"></div>
           </div>
           <p class="admin-note">Admin demo login: <strong>admin</strong> / <strong>intel@123</strong>. This data is browser-local and is not suitable for production access control.</p>
         </div>
