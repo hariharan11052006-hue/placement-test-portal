@@ -160,6 +160,7 @@ function showScreen(id) {
     b.classList.toggle("active", b.dataset.nav && NAV_SCREENS[b.dataset.nav] === id);
   });
   $("header-nav").classList.remove("open");
+  $("mobile-profile-panel").classList.add("hidden");
 }
 
 function navigate(dest) {
@@ -1711,7 +1712,12 @@ function wireEvents() {
     const cur = document.documentElement.getAttribute("data-theme");
     applyTheme(cur === "dark" ? "light" : "dark");
   });
+  $("mobile-theme-toggle").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    applyTheme(cur === "dark" ? "light" : "dark");
+  });
   $("logout-btn").addEventListener("click", logoutUser);
+  $("mobile-logout-btn").addEventListener("click", logoutUser);
   $("mobile-menu-btn").addEventListener("click", () => {
     $("header-nav").classList.toggle("open");
     $("mobile-profile-panel").classList.toggle("hidden", !$("header-nav").classList.contains("open"));
