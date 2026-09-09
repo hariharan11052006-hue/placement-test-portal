@@ -363,8 +363,14 @@ input, select, textarea { font-family: inherit; }
 .brand-name { font-weight: 800; font-size: 1.15rem; color: var(--heading); }
 
 .header-nav { display: flex; gap: 4px; flex: 1; }
-.mobile-profile-panel { display: none; }
+.mobile-profile-panel { display: none; gap: 12px; padding: 4px 0 10px; border-block-end: 1px solid var(--glass-border); }
 .mobile-dashboard-link { display: none; }
+.header-nav.open .mobile-profile-panel { display: grid; }
+.header-nav.open .mobile-dashboard-link { display: block; inline-size: 100%; color: var(--heading); }
+.mobile-profile-summary { display: flex; align-items: center; gap: 10px; }
+.mobile-profile-summary strong, .mobile-profile-summary small { display: block; }
+.mobile-profile-summary small { margin-block-start: 2px; color: var(--text-muted); font-size: 0.76rem; }
+.mobile-profile-panel .profile-avatar { display: grid; place-items: center; inline-size: 34px; block-size: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; font-weight: 700; }
 .nav-link {
   border: none;
   background: transparent;
