@@ -1483,6 +1483,7 @@ input, select, textarea { font-family: inherit; }
   .otp-access-controls input { flex: 1; }
   .nav-link { text-align: start; padding: 12px 14px; }
   .mobile-only { display: inline-flex; }
+  #mobile-menu-btn { position: fixed; inset-block-start: 11px; inset-inline-end: 16px; z-index: 70; background: var(--surface-solid); }
   .user-chip #user-name { display: none; }
   #theme-toggle, #logout-btn, .header-actions .user-chip { display: none; }
 }
