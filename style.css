@@ -1457,11 +1457,13 @@ input, select, textarea { font-family: inherit; }
   .career-visual-right { transform: rotate(5deg); }
   .header-nav {
     position: fixed;
-    inset-block-start: 61px;
-    inset-block-end: 0;
+    inset-block-start: auto;
+    inset-block-end: 74px;
     inset-inline-start: 0;
     inset-inline-end: auto;
     inline-size: min(320px, 88vw);
+    max-block-size: calc(100vh - 96px);
+    overflow-y: auto;
     flex-direction: column;
     background: var(--surface-solid);
     border-inline-end: 1px solid var(--glass-border);
@@ -1470,11 +1472,11 @@ input, select, textarea { font-family: inherit; }
     z-index: 60;
     display: none;
     box-shadow: 18px 0 42px rgba(8, 91, 135, 0.2);
-    transform: translateX(-105%);
+    transform: translateY(105%);
     transition: transform var(--transition);
     pointer-events: none;
   }
-  .header-nav.open { display: flex; transform: translateX(0); pointer-events: auto; }
+  .header-nav.open { display: flex; transform: translateY(0); pointer-events: auto; }
   .mobile-profile-panel { display: grid; gap: 12px; padding: 4px 0 10px; border-block-end: 1px solid var(--glass-border); }
   .mobile-dashboard-link { display: block; inline-size: 100%; color: var(--heading); }
   .mobile-profile-summary { display: flex; align-items: center; gap: 10px; }
@@ -1485,7 +1487,7 @@ input, select, textarea { font-family: inherit; }
   .otp-access-controls input { flex: 1; }
   .nav-link { text-align: start; padding: 12px 14px; }
   .mobile-only { display: inline-flex; }
-  #mobile-menu-btn { position: fixed; inset-block-start: 11px; inset-inline-end: 16px; z-index: 70; background: var(--surface-solid); }
+  #mobile-menu-btn { position: fixed; inset-block-end: 16px; inset-inline-start: 16px; z-index: 70; background: var(--surface-solid); box-shadow: 0 8px 22px rgba(8, 91, 135, 0.2); }
   .user-chip #user-name { display: none; }
   #theme-toggle, #logout-btn, .header-actions .user-chip { display: none; }
 }
